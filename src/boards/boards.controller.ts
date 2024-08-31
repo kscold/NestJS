@@ -1,13 +1,18 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { BoardsService } from './boards.service';
+import { Board } from './boards.model';
 
 @Controller('boards')
 export class BoardsController {
-  // 이후 property를 선언해주어야 함
-  boardsService: BoardsService;
+    constructor(private boardsService: BoardsService) {}
 
-  // 생성자 parameter 주입
-  constructor(boardsService: BoardsService) {
-    this.boardsService = boardsService; // parameter를 property화
-  }
+    @Get('/')
+    getAllBoards(): Board[] {
+        return this.boardsService.getAllBoards();
+    }
+
+    @Post('/')
+    createBoard(@Body('title') title: string, @Body('description') description: string): Board {
+        return this.boardsService.createBoard(title, description);
+    }
 }
