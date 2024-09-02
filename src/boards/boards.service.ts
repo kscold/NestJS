@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Board, BoardStatus } from './boards.model';
 import { v1 as uuid } from 'uuid';
 import { CreateBoardDto } from './dto/create-board.dto'; // uuid의 v1 버전을 사용ㄴ
@@ -15,7 +15,14 @@ export class BoardsService {
 
     // id를 통한 하나의 게시물을 조회
     getBoardById(id: string): Board {
-        return this.boards.find((board) => board.id === id); // boards 배열을 순회하면서 id가 같은 값을 찾음
+        const found = this.boards.find((board) => board.id === id); // boards 배열을 순회하면서 id가 같은 값을 찾음
+
+        // id를 찾지 못했을 때 오류
+        if (!found) {
+            throw new NotFoundException(`Can't find Board with id ${id}`);
+        }
+
+        return found;
     }
 
     // 모든 게시글 조회
@@ -41,6 +48,7 @@ export class BoardsService {
     }
 
     deleteBoard(id: string): void {
-        this.boards = this.boards.filter((board) => board.id !== id);
+        const found = this.getBoardById(id); // getBoardById의 예외처리가 되어 있기 때문에 이를 응용
+        this.boards = this.boards.filter((board) => board.id !== found.id);
     }
 }
