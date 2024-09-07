@@ -1,54 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Board, BoardStatus } from './boards.model';
-import { v1 as uuid } from 'uuid';
-import { CreateBoardDto } from './dto/create-board.dto'; // uuid의 v1 버전을 사용ㄴ
+import { InjectRepository } from '@nestjs/typeorm';
+import { BoardRepository } from './board.repository';
+import { Board } from './board.entity';
+import { CreateBoardDto } from './dto/create-board.dto';
+import { BoardStatus } from './board-status.enum'; // uuid의 v1 버전을 사용함
 
 @Injectable()
 export class BoardsService {
-    // boards의 타입은 Board의 여러개이므로 리스트임
-    private boards: Board[] = []; // BoardsService에서만 사용할 수 있도록
+    constructor(
+        @InjectRepository(BoardRepository)
+        private boardRepository: BoardRepository,
+    ) {}
 
-    // 모든 게시글 조회
-    getAllBoards(): Board[] {
-        return this.boards; // boards 리스트를 호출해서 전부 받음
+    async createBoard(createBoardDto: CreateBoardDto): Promise<Board> {
+        return this.boardRepository.createBoard(createBoardDto);
     }
 
-    // id를 통한 하나의 게시물을 조회
-    getBoardById(id: string): Board {
-        const found = this.boards.find((board) => board.id === id); // boards 배열을 순회하면서 id가 같은 값을 찾음
+    async getBoardById(id: number): Promise<Board> {
+        const found = await this.boardRepository.findOne({ where: { id } });
 
-        // id를 찾지 못했을 때 오류
         if (!found) {
             throw new NotFoundException(`Can't find Board with id ${id}`);
         }
-
         return found;
-    }
-
-    // 모든 게시글 조회
-    createBoard(createBoardDto: CreateBoardDto) {
-        const { title, description } = createBoardDto; // Dto를 사용함
-
-        // 게시글 아이디가 없기 때문에 오류가 남
-        const board: Board = {
-            id: uuid(),
-            title,
-            description,
-            status: BoardStatus.PUBLIC, // 기본값은 PUBLIC임
-        };
-
-        this.boards.push(board);
-        return board; // 추가한 board를 하나를 반환
-    }
-
-    updateBoarStatus(id: string, status: BoardStatus) {
-        const board = this.getBoardById(id);
-        board.status = status;
-        return board; // 업데이트한 board 모델을 반환
-    }
-
-    deleteBoard(id: string): void {
-        const found = this.getBoardById(id); // getBoardById의 예외처리가 되어 있기 때문에 이를 응용
-        this.boards = this.boards.filter((board) => board.id !== found.id);
     }
 }

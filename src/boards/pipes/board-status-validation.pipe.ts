@@ -1,5 +1,5 @@
 import { ArgumentMetadata, BadRequestException, PipeTransform } from '@nestjs/common';
-import { BoardStatus } from '../boards.model';
+import { BoardStatus } from '../board-status.enum';
 
 export class BoardStatusValidationPipe implements PipeTransform {
     // 외부에서 수정을 할 수 없도록 하기 위해 readonly 배열로 설정
