@@ -7,7 +7,8 @@ import { AuthModule } from './auth/auth.module';
 @Module({
     imports: [
         TypeOrmModule.forRoot(typeORMConfing), // TypeORM 설정
-        BoardsModule, AuthModule,
+        BoardsModule,
+        AuthModule,
     ],
 })
 export class AppModule {}
