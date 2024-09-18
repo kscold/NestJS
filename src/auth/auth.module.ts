@@ -6,14 +6,18 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserRepository } from './user.repository';
 import { JwtStrategy } from './jwt.strategy';
+import * as config from 'config';
+import * as process from 'node:process';
+
+const jwtConfig = config.get('jwt');
 
 @Module({
     imports: [
         PassportModule.register({ defaultStrategy: 'jwt' }), // PassportModule을 통해 jwt를 등록
         JwtModule.register({
-            secret: 'Secret1234', // 토큰을 유효한지 체크할 때 사용하는 Secret Key임
+            secret: process.env.JWT_SECRET || jwtConfig.secret, // 토큰을 유효한지 체크할 때 사용하는 Secret Key임
             signOptions: {
-                expiresIn: 60 * 60,
+                expiresIn: jwtConfig.expiresIn,
             },
         }),
         TypeOrmModule.forFeature([UserRepository]),
