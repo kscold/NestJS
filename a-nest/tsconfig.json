@@ -19,3 +19,15 @@
     "noFallthroughCasesInSwitch": false
   }
 }
+
+//{
+//  "compilerOptions": {
+//    "module": "ESNext",  // 또는 "ES6"로 설정
+//    "target": "ES6",
+//    "strict": true,
+//    "esModuleInterop": true,
+//    "skipLibCheck": true,
+//    "outDir": "./dist",
+//    "rootDir": "./src"
+//  }
+//}

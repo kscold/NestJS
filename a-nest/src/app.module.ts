@@ -8,10 +8,26 @@ import { WorkspacesModule } from './workspaces/workspaces.module';
 import { ChannelsModule } from './channels/channels.module';
 import { DmsModule } from './dms/dms.module';
 import { UsersService } from './users/users.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import * as process from 'node:process';
 
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
+        TypeOrmModule.forRoot({
+            type: 'postgres',
+            host: 'localhost',
+            port: 5432,
+            username: process.env.DB_USERNAME,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_DATABASE,
+            // entities: ['entities/*.js'],
+            autoLoadEntities: true,
+            keepConnectionAlive: true,
+            synchronize: true,
+            logging: true,
+            charset: 'utf8mb4',
+        }),
         UsersModule,
         WorkspacesModule,
         ChannelsModule,

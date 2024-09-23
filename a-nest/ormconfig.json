@@ -1,0 +1,11 @@
+{
+  "type": "postgres",
+  "host": "localhost",
+  "port": 5432,
+  "username": "postgres",
+  "password": "vnsxk1022!",
+  "database": "sleact",
+  "entities": ["src/entities/**/*.ts"],
+  "synchronize": true,
+  "logging": false
+}
