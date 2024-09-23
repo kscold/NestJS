@@ -1,21 +1,30 @@
-import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
-import { Board } from '../boards/board.entity';
+import {
+    BaseEntity,
+    Column,
+    Entity,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Board } from './board.entity';
+import { Comment } from './comment.entity'; // 추가
 
-@Entity('users') // 테이블 이름 명시 (기본적으로 클래스 이름과 동일하게 사용됨)
-@Unique(['email']) // 이메일 중복 감지
+@Entity()
 export class User extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'varchar', length: 100 })
+    @Column()
     nickname: string;
 
-    @Column({ type: 'varchar', unique: true, length: 255 })
+    @Column({ unique: true })
     email: string;
 
-    @Column({ type: 'varchar', length: 255 })
+    @Column()
     password: string;
 
-    @OneToMany((type) => Board, (board) => board.user, { eager: true })
+    @OneToMany(() => Board, (board) => board.user, { eager: true })
     boards: Board[];
+
+    @OneToMany(() => Comment, (comment) => comment.user, { eager: true }) // 댓글 관계 추가
+    comments: Comment[];
 }

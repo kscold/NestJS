@@ -1,11 +1,15 @@
-import { Injectable, UnauthorizedException, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import {
+    Injectable,
+    UnauthorizedException,
+    ConflictException,
+    InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from './user.repository';
-import { UserSigninDto } from './dto/user.signin.dto';
-import { UserSignupDto } from './dto/user.signup.dto';
+import { UserSigninDto } from './dto/user-signin.dto';
+import { UserSignupDto } from './dto/user-signup.dto';
 import bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
-
 
 @Injectable()
 export class AuthService {
@@ -18,16 +22,19 @@ export class AuthService {
     // 이메일 중복 체크 로직
     async checkEmail(email: string): Promise<boolean> {
         const user = await this.userRepository.findOne({ where: { email } });
-        return user ? true : false;
+        console.log(user);
+        return user ? false : true;
     }
 
     // 회원가입 로직
-    async signUp(userSignupDto: UserSignupDto): Promise<{ message: string; statusCode: number }> {
+    async signUp(
+        userSignupDto: UserSignupDto,
+    ): Promise<{ message: string; statusCode: number }> {
         const { nickname, email, password } = userSignupDto;
 
         // 이메일 중복 체크
         const emailExists = await this.checkEmail(email);
-        if (emailExists) {
+        if (!emailExists) {
             throw new ConflictException('이미 존재하는 이메일입니다.');
         }
 
@@ -52,7 +59,9 @@ export class AuthService {
     }
 
     // 로그인 로직
-    async signIn(userSigninDto: UserSigninDto): Promise<{ message: string; statusCode: number; accessToken: string }> {
+    async signIn(
+        userSigninDto: UserSigninDto,
+    ): Promise<{ message: string; statusCode: number; accessToken: string }> {
         const { email, password } = userSigninDto;
         const user = await this.userRepository.findOne({ where: { email } });
 
@@ -69,5 +78,4 @@ export class AuthService {
             throw new UnauthorizedException('잘못된 인증 정보입니다.');
         }
     }
-
 }

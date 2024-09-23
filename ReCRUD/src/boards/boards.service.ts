@@ -1,54 +1,134 @@
-import {Injectable, NotFoundException} from '@nestjs/common';
-import {InjectRepository} from '@nestjs/typeorm';
-import {BoardRepository} from './board.repository';
-import {Board} from './board.entity';
-import {CreateBoardDto} from './dto/create-board.dto';
-import {User} from '../entities/user.entity';
+import {
+    Injectable,
+    NotFoundException,
+    InternalServerErrorException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CreateBoardDto } from './dto/create-board.dto';
+import { UpdateBoardDto } from './dto/update-board.dto';
+import { User } from '../entities/user.entity';
+import { BoardResponseDto } from './dto/board-response.dto';
+import { plainToClass } from 'class-transformer';
+import { UserResponseDto } from '../auth/dto/user-response.dto';
+import { BoardRepository } from './board.repository';
 
 @Injectable()
 export class BoardsService {
     constructor(
         @InjectRepository(BoardRepository)
         private boardRepository: BoardRepository,
-    ) {
+    ) {}
+
+    // 게시글 생성 로직
+    async createBoard(
+        createBoardDto: CreateBoardDto,
+        user: User,
+    ): Promise<{ board: BoardResponseDto }> {
+        const { title, content } = createBoardDto;
+
+        const board = this.boardRepository.create({
+            title,
+            content,
+            user,
+        });
+
+        await this.boardRepository.save(board);
+
+        const userResponse: UserResponseDto = plainToClass(
+            UserResponseDto,
+            user,
+            { excludeExtraneousValues: true },
+        );
+        const boardResponse: BoardResponseDto = {
+            id: board.id,
+            title: board.title,
+            content: board.content,
+            user: userResponse,
+        };
+
+        return { board: boardResponse };
     }
 
-    async createBoard(createBoardDto: CreateBoardDto, user: User): Promise<Board> {
-        return this.boardRepository.createBoard(createBoardDto, user);
-    }
+    // 게시글 삭제 (본인 게시글만 삭제)
+    async deleteBoard(id: number, user: User): Promise<{ message: string }> {
+        const result = await this.boardRepository.delete({ id, user });
 
-    async getAllBoards(user: User): Promise<Board[]> {
-        // 쿼리빌더를 사용하지 않은 코드
-        // return await this.boardRepository.find({ where: { user: user } });
-
-        // 쿼리 빌더를 사용한 코드
-        const query = this.boardRepository.createQueryBuilder('board'); // createQueryBuilder를 통해 board 테이블을 선택
-
-        // 쿼리에 WHERE절을 설정, :userId를 통해 매개변수화
-        query.where('board.userId = :userId', {userId: user.id});
-
-        const boards = await query.getMany();
-
-        return boards;
-    }
-
-    async getBoardById(id: number): Promise<Board> {
-        const found = await this.boardRepository.findOne({where: {id}});
-
-        if (!found) {
-            throw new NotFoundException(`Can't find Board with id ${id}`);
-        }
-        return found;
-    }
-
-
-    async deleteBoard(id: number, user: User): Promise<void> {
-        const result = await this.boardRepository.delete({id, user}); // id와 user가 같을 때만 게시글을 삭제
-
-        // 삭제를 못했을 시에는 affected === 0이므로 NotFoundException 404 오류를 반환
         if (result.affected === 0) {
             throw new NotFoundException(`Can't find Board with id ${id}`);
         }
-        console.log('result', result);
+
+        return { message: '게시글이 삭제되었습니다.' };
+    }
+
+    // 게시글 수정 (본인 게시글만 수정)
+    async updateBoard(
+        id: number,
+        updateBoardDto: UpdateBoardDto,
+        user: User,
+    ): Promise<BoardResponseDto> {
+        const { title, content } = updateBoardDto;
+
+        const board = await this.getBoardById(id, user);
+
+        board.title = title;
+        board.content = content;
+
+        await this.boardRepository.save(board);
+
+        const userResponse: UserResponseDto = plainToClass(
+            UserResponseDto,
+            user,
+            { excludeExtraneousValues: true },
+        );
+        return {
+            id: board.id,
+            title: board.title,
+            content: board.content,
+            user: userResponse,
+        };
+    }
+
+    // 전체 게시글 조회
+    async getAllBoards(user: User): Promise<BoardResponseDto[]> {
+        const boards = await this.boardRepository.find({ relations: ['user'] });
+
+        // 모든 게시글과 작성자를 DTO로 변환
+        return boards.map((board) => {
+            const userResponse: UserResponseDto = plainToClass(
+                UserResponseDto,
+                board.user,
+                { excludeExtraneousValues: true },
+            );
+            return {
+                id: board.id,
+                title: board.title,
+                content: board.content,
+                user: userResponse,
+            };
+        });
+    }
+
+    // 게시글 ID로 조회 (본인 게시글만 조회)
+    async getBoardById(id: number, user: User): Promise<BoardResponseDto> {
+        const board = await this.boardRepository.findOne({
+            where: { id, user },
+            relations: ['user'],
+        });
+
+        if (!board) {
+            throw new NotFoundException(`Can't find Board with id ${id}`);
+        }
+
+        const userResponse: UserResponseDto = plainToClass(
+            UserResponseDto,
+            board.user,
+            { excludeExtraneousValues: true },
+        );
+        return {
+            id: board.id,
+            title: board.title,
+            content: board.content,
+            user: userResponse,
+        };
     }
 }

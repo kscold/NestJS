@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import {
+    IsEmail,
+    IsNotEmpty,
+    IsString,
+    Matches,
+    MaxLength,
+    MinLength,
+} from 'class-validator';
 
 export class UserSignupDto {
     @ApiProperty({ description: '회원 닉네임', example: 'kscold' })
@@ -16,6 +23,8 @@ export class UserSignupDto {
     @IsString()
     @MinLength(4, { message: '비밀번호는 최소 4자 이상이어야 합니다.' })
     @MaxLength(20, { message: '비밀번호는 최대 20자 이하이어야 합니다.' })
-    @Matches(/^[a-zA-Z0-9!@#$%^&*()_+[\]{};':"\\|,.<>/?~`-]*$/, { message: '비밀번호는 영어, 숫자, 특수문자만 허용됩니다.' })
+    @Matches(/^[a-zA-Z0-9!@#$%^&*()_+[\]{};':"\\|,.<>/?~`-]*$/, {
+        message: '비밀번호는 영어, 숫자, 특수문자만 허용됩니다.',
+    })
     password: string;
 }

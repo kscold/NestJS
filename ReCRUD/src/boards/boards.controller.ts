@@ -1,38 +1,106 @@
-import { Body, Controller, Delete, Get, Logger, Param, ParseIntPipe, Patch, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    ParseIntPipe,
+    Patch,
+    Post,
+    UseGuards,
+    UsePipes,
+    ValidationPipe,
+} from '@nestjs/common';
 import { BoardsService } from './boards.service';
-import { Board } from './board.entity';
 import { CreateBoardDto } from './dto/create-board.dto';
+import { UpdateBoardDto } from './dto/update-board.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../decorators/get-user.decorator';
 import { User } from '../entities/user.entity';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { BoardResponseDto } from './dto/board-response.dto';
 
+@ApiTags('boards')
 @Controller('boards')
-@UseGuards(AuthGuard())
 export class BoardsController {
-    private logger = new Logger('BoardController'); // BoardsController에서 Logger 객체를 인스턴스화
     constructor(private boardsService: BoardsService) {}
 
+    @UseGuards(AuthGuard())
+    @ApiOperation({ summary: '게시글 생성' })
+    @ApiResponse({
+        status: 200,
+        description: '정상적으로 게시글이 생성한 경우',
+    })
     @Post()
+    @HttpCode(200)
     @UsePipes(ValidationPipe)
-    createBoard(@Body() createBoardDto: CreateBoardDto, @GetUser() user: User): Promise<Board> {
-        this.logger.verbose(`User ${user.nickname} creating a new board. Payload: ${JSON.stringify(createBoardDto)} `);
+    async createBoard(
+        @Body() createBoardDto: CreateBoardDto,
+        @GetUser() user: User,
+    ): Promise<object> {
         return this.boardsService.createBoard(createBoardDto, user);
     }
 
+    @ApiOperation({ summary: '모든 게시글 조회' })
+    @ApiResponse({
+        status: 200,
+        description: '정상적으로 게시글이 조회한 경우',
+    })
     @Get()
-    getAllBoards(@GetUser() user: User): Promise<Board[]> {
-        this.logger.verbose(`User ${user.nickname} trying to get all boards`);
+    async getAllBoards(@GetUser() user: User): Promise<BoardResponseDto[]> {
         return this.boardsService.getAllBoards(user);
     }
 
+    @ApiOperation({ summary: '게시글 ID로 조회' })
+    @ApiResponse({
+        status: 200,
+        description: '정상적으로 특정 게시글이 조회한 경우',
+    })
+    @ApiResponse({
+        status: 404,
+        description: '특정 게시글을 찾을 수 없는 경우',
+    })
     @Get('/:id')
-    getBoardById(@Param('id') id: number): Promise<Board> {
-        return this.boardsService.getBoardById(id);
+    async getBoardById(
+        @Param('id', ParseIntPipe) id: number,
+        @GetUser() user: User,
+    ): Promise<BoardResponseDto> {
+        return this.boardsService.getBoardById(id, user);
     }
 
+    @UseGuards(AuthGuard())
+    @ApiOperation({ summary: '게시글 삭제' })
+    @ApiResponse({
+        status: 200,
+        description: '정상적으로 게시글을 삭제한 경우',
+    })
+    @ApiResponse({ status: 404, description: '게시글을 찾을 수 없음' })
+    @ApiResponse({
+        status: 401,
+        description: '인증 실패로 게시글을 삭제할 수 없는 경우',
+    })
     @Delete('/:id')
-    // url 파라미터가 숫자로 제대로 오는지 숫자로 오지 않으면 ParseIntPipe를 통해서 에러를 일으킴
-    deleteBoard(@Param('id', ParseIntPipe) id: number, @GetUser() user: User): Promise<void> {
+    async deleteBoard(
+        @Param('id', ParseIntPipe) id: number,
+        @GetUser() user: User,
+    ): Promise<{ message: string }> {
         return this.boardsService.deleteBoard(id, user);
+    }
+
+    @UseGuards(AuthGuard())
+    @ApiOperation({ summary: '게시글 수정' })
+    @ApiResponse({
+        status: 200,
+        description: '정상적으로 게시글이 수정되었습니다.',
+    })
+    @ApiResponse({ status: 404, description: '게시글을 찾을 수 없음' })
+    @Patch('/:id')
+    async updateBoard(
+        @Param('id', ParseIntPipe) id: number,
+        @Body(ValidationPipe) updateBoardDto: UpdateBoardDto,
+        @GetUser() user: User,
+    ): Promise<BoardResponseDto> {
+        return this.boardsService.updateBoard(id, updateBoardDto, user);
     }
 }

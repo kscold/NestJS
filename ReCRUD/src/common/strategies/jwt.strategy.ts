@@ -1,30 +1,28 @@
-import {Injectable, UnauthorizedException} from '@nestjs/common';
-import {PassportStrategy} from '@nestjs/passport';
-import {ExtractJwt, Strategy} from 'passport-jwt';
-import {InjectRepository} from '@nestjs/typeorm';
-import {UserRepository} from '../../auth/user.repository';
-import {User} from '../../entities/user.entity';
-import process from "node:process";
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserRepository } from '../../auth/user.repository';
+import { User } from '../../entities/user.entity';
 
-
-@Injectable() // 다른곳에서도 주입을 하기 위해 사용
+@Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(
         @InjectRepository(UserRepository)
         private userRepository: UserRepository,
     ) {
         super({
-            secretOrKey: process.env.JWT_SECRET,
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // jwt를 Header에서 Bearer를 통해 가져오는 것으로 확인
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            secretOrKey: 'Secret1234!', // 시크릿 키 확인
         });
     }
 
-    // 자동으로 검증하는 validate 메서드
-    async validate(payload) {
-        const {nickname} = payload;
-        const user: User = await this.userRepository.findOne({where: {nickname}});
+    async validate(payload): Promise<User> {
+        console.log('JWT Payload:', payload); // payload 로그 추가
+        const { email } = payload;
+        const user = await this.userRepository.findOne({ where: { email } });
 
-        if (!User) {
+        if (!user) {
             throw new UnauthorizedException();
         }
 
