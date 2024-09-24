@@ -31,6 +31,44 @@ export class BoardsController {
     @ApiResponse({
         status: 200,
         description: '정상적으로 게시글이 생성한 경우',
+        schema: {
+            properties: {
+                board: {
+                    type: 'object',
+                    properties: {
+                        id: {
+                            type: 'number',
+                            example: 1,
+                        },
+                        title: {
+                            type: 'string',
+                            example: '첫 번째 게시글',
+                        },
+                        content: {
+                            type: 'string',
+                            example: '게시글 내용입니다.',
+                        },
+                        user: {
+                            type: 'object',
+                            properties: {
+                                id: {
+                                    type: 'number',
+                                    example: 2,
+                                },
+                                nickname: {
+                                    type: 'string',
+                                    example: 'id가 2인 사용자',
+                                },
+                                email: {
+                                    type: 'string',
+                                    example: 'id가 2인 사용자의 이메일',
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
     })
     @Post()
     @HttpCode(200)
@@ -46,6 +84,43 @@ export class BoardsController {
     @ApiResponse({
         status: 200,
         description: '정상적으로 게시글이 조회한 경우',
+        schema: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    id: {
+                        type: 'number',
+                        example: 1,
+                    },
+                    title: {
+                        type: 'string',
+                        example: '첫 번째 게시글',
+                    },
+                    content: {
+                        type: 'string',
+                        example: '게시글 내용입니다.',
+                    },
+                    user: {
+                        type: 'object',
+                        properties: {
+                            id: {
+                                type: 'number',
+                                example: 2,
+                            },
+                            nickname: {
+                                type: 'string',
+                                example: 'id가 2인 사용자',
+                            },
+                            email: {
+                                type: 'string',
+                                example: 'id가 2인 사용자의 이메일',
+                            },
+                        },
+                    },
+                },
+            },
+        },
     })
     @Get()
     async getAllBoards(@GetUser() user: User): Promise<BoardResponseDto[]> {
@@ -56,6 +131,36 @@ export class BoardsController {
     @ApiResponse({
         status: 200,
         description: '정상적으로 특정 게시글이 조회한 경우',
+        schema: {
+            type: 'object',
+            properties: {
+                id: {
+                    type: 'number',
+                    example: 1,
+                },
+                title: {
+                    type: 'string',
+                    example: '첫 번째 게시글',
+                },
+                content: {
+                    type: 'string',
+                    example: '게시글 내용입니다.',
+                },
+                user: {
+                    type: 'object',
+                    properties: {
+                        id: {
+                            type: 'number',
+                            example: 2,
+                        },
+                        nickname: {
+                            type: 'string',
+                            example: '사용자1',
+                        },
+                    },
+                },
+            },
+        },
     })
     @ApiResponse({
         status: 404,
@@ -74,6 +179,14 @@ export class BoardsController {
     @ApiResponse({
         status: 200,
         description: '정상적으로 게시글을 삭제한 경우',
+        schema: {
+            properties: {
+                message: {
+                    type: 'string',
+                    example: '게시글이 삭제되었습니다.',
+                },
+            },
+        },
     })
     @ApiResponse({ status: 404, description: '게시글을 찾을 수 없음' })
     @ApiResponse({
@@ -93,6 +206,35 @@ export class BoardsController {
     @ApiResponse({
         status: 200,
         description: '정상적으로 게시글이 수정되었습니다.',
+        schema: {
+            properties: {
+                id: {
+                    type: 'number',
+                    example: 1,
+                },
+                title: {
+                    type: 'string',
+                    example: '수정된 게시글 제목',
+                },
+                content: {
+                    type: 'string',
+                    example: '수정된 게시글 내용입니다.',
+                },
+                user: {
+                    type: 'object',
+                    properties: {
+                        id: {
+                            type: 'number',
+                            example: 2,
+                        },
+                        nickname: {
+                            type: 'string',
+                            example: '사용자1',
+                        },
+                    },
+                },
+            },
+        },
     })
     @ApiResponse({ status: 404, description: '게시글을 찾을 수 없음' })
     @Patch('/:id')

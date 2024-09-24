@@ -20,7 +20,16 @@ async function bootstrap() {
     const config = new DocumentBuilder()
         .setTitle('용찬이 백엔드 개발 요청 API 문서')
         .setDescription('김승찬이 빠르게 백엔드(NestJS) 외주 개발해줌')
-        .setVersion('1.0')
+        .setVersion('1.0.0')
+        .addBearerAuth(
+            {
+                type: 'http',
+                scheme: 'bearer',
+                name: 'JWT',
+                in: 'header',
+            },
+            'access-token',
+        )
         .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);

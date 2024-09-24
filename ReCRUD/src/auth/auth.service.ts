@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from './user.repository';
 import { UserSigninDto } from './dto/user-signin.dto';
 import { UserSignupDto } from './dto/user-signup.dto';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -20,10 +20,9 @@ export class AuthService {
     ) {}
 
     // 이메일 중복 체크 로직
-    async checkEmail(email: string): Promise<boolean> {
+    async checkEmail(email: string): Promise<{ exists: boolean }> {
         const user = await this.userRepository.findOne({ where: { email } });
-        console.log(user);
-        return user ? false : true;
+        return { exists: !!user }; // 존재 여부를 boolean으로 반환
     }
 
     // 회원가입 로직
@@ -34,7 +33,7 @@ export class AuthService {
 
         // 이메일 중복 체크
         const emailExists = await this.checkEmail(email);
-        if (!emailExists) {
+        if (emailExists.exists) {
             throw new ConflictException('이미 존재하는 이메일입니다.');
         }
 
