@@ -19,8 +19,8 @@ import { WorkspaceMembers } from './WorkspaceMembers';
 import { Workspaces } from './Workspaces';
 import { ApiProperty } from '@nestjs/swagger';
 
-@Index('email', ['email'], { unique: true })
-@Entity({ schema: 'sleact', name: 'users' })
+@Index(['email'], { unique: true })
+@Entity({ name: 'users' })
 export class Users {
     @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
     id: number;

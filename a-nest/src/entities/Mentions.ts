@@ -11,10 +11,10 @@ import {
 import { Workspaces } from './Workspaces';
 import { Users } from './Users';
 
-@Index('WorkspaceId', ['WorkspaceId'], {})
-@Index('SenderId', ['SenderId'], {})
-@Index('ReceiverId', ['ReceiverId'], {})
-@Entity({ schema: 'sleact', name: 'mentions' })
+@Index(['WorkspaceId'], {})
+@Index(['SenderId'], {})
+@Index(['ReceiverId'], {})
+@Entity({ name: 'mentions' })
 export class Mentions {
     @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
     id: number;
