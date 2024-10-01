@@ -1,8 +1,45 @@
+//{
+//  "compilerOptions": {
+//    "module": "commonjs",
+//    "declaration": true,
+//    "removeComments": true,
+//    "esModuleInterop": true, // S 모듈과 CommonJS 모듈 간의 상호 운용성 지원
+//    "moduleResolution": "node",
+//    "emitDecoratorMetadata": true,
+//    "experimentalDecorators": true,
+//    "allowSyntheticDefaultImports": true,
+//    "target": "ES2021",
+//    "sourceMap": true,
+//    "outDir": "./dist",
+//    "baseUrl": "./",
+//    "incremental": true,
+//    "skipLibCheck": true,
+//    "strictNullChecks": false,
+//    "noImplicitAny": false,
+//    "strictBindCallApply": false,
+//    "forceConsistentCasingInFileNames": false,
+//    "noFallthroughCasesInSwitch": false,
+//    "plugins": [
+//      {
+//        "name": "ts-transformer-decorators",
+//        "transform": "transform-class-properties"
+//      }
+//    ]
+//  },
+//  "include": [
+//    "src/**/*.ts",
+//    "src/data-source.ts"   // dataSource.ts를 포함
+//  ],
+//  "exclude": ["node_modules"]
+//}
+
 {
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
@@ -16,18 +53,19 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "noFallthroughCasesInSwitch": false,
+    "plugins": [
+      {
+        "name": "@babel/plugin-proposal-class-properties",
+        "options": {
+          "loose": true
+        }
+      }
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/data-source.ts"
+  ],
+  "exclude": ["node_modules"]
 }
-
-//{
-//  "compilerOptions": {
-//    "module": "ESNext",  // 또는 "ES6"로 설정
-//    "target": "ES6",
-//    "strict": true,
-//    "esModuleInterop": true,
-//    "skipLibCheck": true,
-//    "outDir": "./dist",
-//    "rootDir": "./src"
-//  }
-//}

@@ -15,8 +15,8 @@
 // import { Users } from './Users';
 // import { Workspaces } from './Workspaces';
 //
-// @Index(['WorkspaceId'], {})
-// @Entity()
+// @Index('WorkspaceId', ['WorkspaceId'], {})
+// @Entity({ schema: 'sleact' })
 // export class Channels {
 //     @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
 //     id: number;
@@ -24,18 +24,11 @@
 //     @Column('varchar', { name: 'name', length: 30 })
 //     name: string;
 //
-//     // @Column('tinyint', {
-//     //     name: 'private',
-//     //     nullable: true,
-//     //     width: 1,
-//     //     default: () => "'0'",
-//     // })
-//     // private: boolean | null;
-//     // 'tinyint' 대신 'boolean' 사용, default 값은 'false'로 설정
-//     @Column('boolean', {
+//     @Column('tinyint', {
 //         name: 'private',
 //         nullable: true,
-//         default: false,
+//         width: 1,
+//         default: () => "'0'",
 //     })
 //     private: boolean | null;
 //
@@ -75,27 +68,34 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    Index,
+    JoinColumn,
     ManyToMany,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
-    JoinColumn,
 } from 'typeorm';
 import { ChannelChats } from './ChannelChats';
 import { ChannelMembers } from './ChannelMembers';
 import { Users } from './Users';
 import { Workspaces } from './Workspaces';
 
-@Entity()
+// @Index('WorkspaceId', ['WorkspaceId'], {})
+@Index('IDX_Channels_WorkspaceId', ['WorkspaceId'], {})
+@Entity({ schema: 'public', name: 'channels' })
 export class Channels {
-    @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
+    @PrimaryGeneratedColumn({ name: 'id' })
     id: number;
 
     @Column('varchar', { name: 'name', length: 30 })
     name: string;
 
-    @Column('boolean', { name: 'private', nullable: true, default: false })
+    @Column('boolean', {
+        name: 'private',
+        nullable: true,
+        default: false,
+    })
     private: boolean | null;
 
     @CreateDateColumn()
@@ -104,13 +104,8 @@ export class Channels {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    // 외래 키 필드인 WorkspaceId는 제거
-    @ManyToOne(() => Workspaces, (workspaces) => workspaces.Channels, {
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-    })
-    @JoinColumn([{ name: 'WorkspaceId', referencedColumnName: 'id' }])
-    Workspace: Workspaces;
+    @Column('int', { name: 'WorkspaceId', nullable: true })
+    WorkspaceId: number | null;
 
     @OneToMany(() => ChannelChats, (channelchats) => channelchats.Channel)
     ChannelChats: ChannelChats[];
@@ -126,4 +121,11 @@ export class Channels {
 
     @ManyToMany(() => Users, (users) => users.Channels)
     Members: Users[];
+
+    @ManyToOne(() => Workspaces, (workspaces) => workspaces.Channels, {
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+    })
+    @JoinColumn([{ name: 'WorkspaceId', referencedColumnName: 'id' }])
+    Workspace: Workspaces;
 }
