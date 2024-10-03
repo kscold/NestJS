@@ -118,13 +118,19 @@ import { Mentions } from './Mentions';
 import { WorkspaceMembers } from './WorkspaceMembers';
 import { Workspaces } from './Workspaces';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 @Index('email', ['email'], { unique: true })
 @Entity({ schema: 'public', name: 'users' })
 export class Users {
+    @ApiProperty({
+        example: 1,
+        description: '사용자 아이디',
+    })
     @PrimaryGeneratedColumn({ name: 'id' })
     id: number;
 
+    @IsEmail()
     @ApiProperty({
         example: 'chan6502@gmail.com',
         description: '이메일',
@@ -133,6 +139,8 @@ export class Users {
     @Column('varchar', { name: 'email', unique: true, length: 30 })
     email: string;
 
+    @IsString()
+    @IsNotEmpty()
     @ApiProperty({
         example: 'kscold',
         description: '닉네임',
@@ -141,6 +149,8 @@ export class Users {
     @Column('varchar', { name: 'nickname', length: 30 })
     nickname: string;
 
+    @IsString()
+    @IsNotEmpty()
     @ApiProperty({
         example: 'Tmdcks6502@',
         description: '비밀번호',
