@@ -2,10 +2,10 @@ import {
     Body,
     Controller,
     Get,
-    HttpException,
     Post,
     Req,
     Res,
+    UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
 import { JoinRequestDto } from './dto/join.request.dto';
@@ -37,6 +37,7 @@ export class UsersController {
     @ApiOperation({ summary: '로그인' })
     @ApiResponse({ status: 200, description: '성공', type: UserDto })
     @ApiResponse({ status: 500, description: '서버 에러' })
+    @UseGuards()
     @Post('login')
     login(@User() user) {
         return user;

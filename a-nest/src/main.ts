@@ -6,7 +6,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import 'reflect-metadata';
 
 import * as dotenv from 'dotenv';
-import { HttpExceptionFilter } from './common/httpException.filter';
+import { HttpExceptionFilter } from './common/filter/httpException.filter';
 
 // dotenv로 환경 변수 로드
 dotenv.config();
