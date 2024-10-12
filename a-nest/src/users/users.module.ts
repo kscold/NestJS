@@ -1,14 +1,22 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersService } from './users.service';
-import { UsersController } from './users.controller';
-import { Users } from '../entities/Users';
-import { WorkspaceMembers } from '../entities/WorkspaceMembers'; // 추가된 엔티티
-import { ChannelMembers } from '../entities/ChannelMembers'; // 추가된 엔티티
+// import { Module } from '@nestjs/common';
+// import { TypeOrmModule } from '@nestjs/typeorm';
+// import { UsersService } from './users.service';
+// import { UsersController } from './users.controller';
+// import { Users } from '../entities/Users';
+// import { WorkspaceMembers } from '../entities/WorkspaceMembers';
+// import { ChannelMembers } from '../entities/ChannelMembers';
+// import { Channels } from '../entities/Channels';
+// import { Workspaces } from '../entities/Workspaces';
 //
 // @Module({
 //     imports: [
-//         TypeOrmModule.forFeature([Users, WorkspaceMembers, ChannelMembers]), // 필요한 엔티티들 추가
+//         TypeOrmModule.forFeature([
+//             Users,
+//             WorkspaceMembers,
+//             ChannelMembers,
+//             Channels,
+//             Workspaces,
+//         ]), // 필요한 엔티티들 추가
 //     ],
 //     providers: [UsersService],
 //     controllers: [UsersController],
@@ -16,13 +24,29 @@ import { ChannelMembers } from '../entities/ChannelMembers'; // 추가된 엔티
 // })
 // export class UsersModule {}
 
+import { Module, forwardRef } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersService } from './users.service';
+import { UsersController } from './users.controller';
+import { Users } from '../entities/Users';
+import { WorkspaceMembers } from '../entities/WorkspaceMembers';
+import { ChannelMembers } from '../entities/ChannelMembers';
+import { AuthModule } from '../auth/auth.module';
+import { Workspaces } from '../entities/Workspaces';
+import { Channels } from '../entities/Channels'; // AuthModule을 가져옴
+
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Users, WorkspaceMembers, ChannelMembers]),
-        forwardRef(() => AuthModule),
+        TypeOrmModule.forFeature([
+            Users,
+            Workspaces,
+            Channels,
+            WorkspaceMembers,
+            ChannelMembers,
+        ]),
     ],
-    providers: [UsersService],
+    providers: [UsersService, WorkspaceMembers, ChannelMembers],
     controllers: [UsersController],
-    exports: [UsersService],
+    exports: [UsersService], // 다른 모듈에서 사용하기 위해 exports
 })
 export class UsersModule {}

@@ -17,7 +17,6 @@ import { Mentions } from './entities/Mentions';
 import { Users } from './entities/Users';
 import { WorkspaceMembers } from './entities/WorkspaceMembers';
 import { Workspaces } from './entities/Workspaces';
-
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
@@ -51,8 +50,8 @@ import { DmsModule } from './dms/dms.module';
             // synchronize: false,
             logging: true,
         }),
-        AuthModule,
         UsersModule,
+        AuthModule,
         WorkspacesModule,
         ChannelsModule,
         DmsModule,

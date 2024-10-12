@@ -1,10 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Users } from '../entities/Users';
-import { WorkspaceMembers } from '../entities/WorkspaceMembers';
-import { Repository } from 'typeorm';
+import { Connection, Repository } from 'typeorm';
 import bcrypt from 'bcrypt';
-import { ChannelMembers } from 'src/entities/ChannelMembers';
+
+import { Users } from '../entities/Users';
+import { ChannelMembers } from '../entities/ChannelMembers';
+import { WorkspaceMembers } from '../entities/WorkspaceMembers';
 
 @Injectable()
 export class UsersService {
@@ -12,9 +13,10 @@ export class UsersService {
         @InjectRepository(Users)
         private usersRepository: Repository<Users>,
         @InjectRepository(WorkspaceMembers)
-        private workspaceMembersRepository: Repository<WorkspaceMembers>, // WorkspaceMembers 리포지토리 추가
+        private workspaceMembersRepository: Repository<WorkspaceMembers>,
         @InjectRepository(ChannelMembers)
         private channelMembersRepository: Repository<ChannelMembers>,
+        private connection: Connection,
     ) {}
 
     async join(email: string, nickname: string, password: string) {
@@ -43,13 +45,13 @@ export class UsersService {
             password: hashedPassword,
         });
 
-        await this.workspaceMembersRepository.save({
-            UserId: returned.id,
-            WorkspaceId: 1,
-        });
-        await this.channelMembersRepository.save({
-            UserId: returned.id,
-            WorkspaceId: 1,
-        });
+        // await this.workspaceMembersRepository.save({
+        //     UserId: returned.id,
+        //     WorkspaceId: 1,
+        // });
+        // await this.channelMembersRepository.save({
+        //     UserId: returned.id,
+        //     WorkspaceId: 1,
+        // });
     }
 }
