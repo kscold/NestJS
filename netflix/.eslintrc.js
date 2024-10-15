@@ -21,6 +21,7 @@ module.exports = {
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/explicit-module-boundary-types': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
+        // 사용하지 않는 변수에 대한 경고
         'no-unused-vars': 'off',
         '@typescript-eslint/no-unused-vars': ['off'],
     },

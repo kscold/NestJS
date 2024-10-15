@@ -1,12 +1,4 @@
-import {
-    IsNotEmpty,
-    IsOptional,
-    registerDecorator,
-    ValidationArguments,
-    ValidationOptions,
-    ValidatorConstraint,
-    ValidatorConstraintInterface,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class UpdateMovieDto {
     @IsNotEmpty() // 값이 있는 경우에만 수정가능
