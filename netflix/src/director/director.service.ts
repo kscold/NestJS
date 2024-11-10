@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateDirectorDto } from './dto/create-director.dto';
-import { UpdateDirectorDto } from './dto/update-director.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Director } from './entity/director.entity';
+
+import { CreateDirectorDto } from './dto/create-director.dto';
+import { UpdateDirectorDto } from './dto/update-director.dto';
 
 @Injectable()
 export class DirectorService {
@@ -47,7 +48,19 @@ export class DirectorService {
         return newDirector;
     }
 
-    remove(id: number) {
-        return this.directorRepository.delete(id);
+    async remove(id: number) {
+        const director = await this.directorRepository.findOne({
+            where: {
+                id,
+            },
+        });
+
+        if (!director) {
+            throw new NotFoundException('존재하지 않는 ID의 영화입니다.');
+        }
+
+        await this.directorRepository.delete(id);
+
+        return id;
     }
 }
