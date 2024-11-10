@@ -12,12 +12,11 @@ export class MovieService {
     constructor(
         @InjectRepository(Movie)
         private readonly movieRepository: Repository<Movie>,
-
         @InjectRepository(MovieDetail)
         private readonly movieDetailRepository: Repository<MovieDetail>,
     ) {}
 
-    async getManyMovies(title?: string) {
+    async findAll(title?: string) {
         if (!title) {
             return this.movieRepository.find();
         }
@@ -26,8 +25,8 @@ export class MovieService {
         });
     }
 
-    getMovieById(id: number) {
-        const movie = this.movieRepository.findOne({
+    async findOne(id: number) {
+        const movie = await this.movieRepository.findOne({
             where: { id },
             relations: ['detail'],
         });
@@ -39,20 +38,19 @@ export class MovieService {
         return movie;
     }
 
-    async createMovie(createMovieDto: CreateMovieDto) {
-        const movieDetail: MovieDetail = await this.movieDetailRepository.save({
-            detail: createMovieDto.detail,
-        });
+    async create(createMovieDto: CreateMovieDto) {
         const movie: Movie = await this.movieRepository.save({
             title: createMovieDto.title,
             genre: createMovieDto.genre,
-            detail: movieDetail,
+            detail: {
+                detail: createMovieDto.detail,
+            },
         });
 
         return movie;
     }
 
-    async updateMovie(id: number, updateMovieDto: UpdateMovieDto) {
+    async update(id: number, updateMovieDto: UpdateMovieDto) {
         const movie: Movie = await this.movieRepository.findOne({
             where: {
                 id,
@@ -89,5 +87,21 @@ export class MovieService {
         return newMoive;
     }
 
-    deleteMovie(id: number) {}
+    async remove(id: number) {
+        const movie = await this.movieRepository.findOne({
+            where: {
+                id,
+            },
+            relations: ['detail'],
+        });
+
+        if (!movie) {
+            throw new NotFoundException('존해하지 않는 ID의 영화입니다.');
+        }
+
+        await this.movieRepository.delete(id);
+        await this.movieDetailRepository.delete(movie.detail.id);
+
+        return id;
+    }
 }

@@ -1,10 +1,14 @@
 import { Module } from '@nestjs/common';
-import { MovieModule } from './movie/movie.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import Joi from 'joi';
+
+import { MovieModule } from './movie/movie.module';
+import { DirectorModule } from './director/director.module';
+
 import { Movie } from './movie/entity/movie.entity';
 import { MovieDetail } from './movie/entity/movie-detail.entity';
+import { Director } from './director/entity/director.entity';
 
 @Module({
     imports: [
@@ -28,12 +32,13 @@ import { MovieDetail } from './movie/entity/movie-detail.entity';
                 username: configService.get<string>('DB_USERNAME'),
                 password: configService.get<string>('DB_PASSWORD'),
                 database: configService.get<string>('DB_DATABASE'),
-                entities: [Movie, MovieDetail],
+                entities: [Movie, MovieDetail, Director],
                 synchronize: true,
             }),
             inject: [ConfigService], // IoC가 useFactory에 넣어줌
         }),
         MovieModule,
+        DirectorModule,
     ],
     controllers: [],
     providers: [],
