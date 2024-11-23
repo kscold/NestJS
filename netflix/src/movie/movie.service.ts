@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Like, Repository } from 'typeorm';
+import { DataSource, In, Like, QueryRunner, Repository } from 'typeorm';
 
 import { Movie } from './entity/movie.entity';
 import { MovieDetail } from './entity/movie-detail.entity';
@@ -23,28 +23,49 @@ export class MovieService {
 
         @InjectRepository(Genre)
         private readonly genreRepository: Repository<Genre>,
+
+        private readonly dataSource: DataSource,
     ) {}
 
     async findAll(title?: string) {
-        if (!title) {
-            return [
-                await this.movieRepository.find({
-                    relations: ['director', 'genres'],
-                }),
-                await this.movieRepository.count(),
-            ];
+        const qb = await this.movieRepository
+            .createQueryBuilder('movie')
+            .leftJoinAndSelect('movie.director', 'director')
+            .leftJoinAndSelect('movie.genres', 'genres');
+
+        if (title) {
+            qb.where('movie.title LIKE :title', { title: `%${title}%` });
         }
-        return this.movieRepository.find({
-            where: { title: Like(`%${title}`) }, // 앞에 와일드카드 설정
-            relations: ['director', 'genres'],
-        });
+
+        return await qb.getManyAndCount();
+
+        // if (!title) {
+        //     return [
+        //         await this.movieRepository.find({
+        //             relations: ['director', 'genres'],
+        //         }),
+        //         await this.movieRepository.count(),
+        //     ];
+        // }
+        // return this.movieRepository.find({
+        //     where: { title: Like(`%${title}`) }, // 앞에 와일드카드 설정
+        //     relations: ['director', 'genres'],
+        // });
     }
 
     async findOne(id: number) {
-        const movie = await this.movieRepository.findOne({
-            where: { id },
-            relations: ['detail', 'director', 'genres'],
-        });
+        const movie = await this.movieRepository
+            .createQueryBuilder('movie')
+            .leftJoinAndSelect('movie.detail', 'detail')
+            .leftJoinAndSelect('movie.director', 'director')
+            .leftJoinAndSelect('movie.genres', 'genres')
+            .where('movie.id = :id', { id })
+            .getOne();
+
+        // const movie = await this.movieRepository.findOne({
+        //     where: { id },
+        //     relations: ['detail', 'director', 'genres'],
+        // });
 
         if (!movie) {
             throw new NotFoundException('존재하지 않는 ID의 영화입니다.');
@@ -54,123 +75,217 @@ export class MovieService {
     }
 
     async create(createMovieDto: CreateMovieDto) {
-        const director = await this.directorRepository.findOne({
-            where: { id: createMovieDto.directorId },
-        });
+        const qr: QueryRunner = this.dataSource.createQueryRunner();
+        await qr.connect();
+        await qr.startTransaction();
 
-        if (!director) {
-            throw new NotFoundException('존재하지 않는 ID의 감독입니다.');
-        }
-
-        const genres = await this.genreRepository.find({
-            where: {
-                id: In(createMovieDto.genreIds),
-            },
-        });
-
-        // 찾은 장르의 갯수가 등록하는 장르의 갯수와 같지 않으면 오류
-        if (genres.length !== createMovieDto.genreIds.length) {
-            throw new NotFoundException(
-                `존재하지 않는 장르가 있습니다. -> ${genres.map((genre) => genre.id).join(',')}`,
-            );
-        }
-
-        const movie: Movie = await this.movieRepository.save({
-            title: createMovieDto.title,
-            detail: {
-                detail: createMovieDto.detail,
-            },
-            director,
-            genres,
-        });
-
-        return movie;
-    }
-
-    async update(id: number, updateMovieDto: UpdateMovieDto) {
-        const movie: Movie = await this.movieRepository.findOne({
-            where: {
-                id,
-            },
-            relations: ['detail'],
-        });
-
-        if (!movie) {
-            throw new NotFoundException('존재하지 않는 ID의 영화입니다!');
-        }
-
-        const { detail, directorId, genreIds, ...movieRest } = updateMovieDto;
-
-        let newDirector;
-
-        if (directorId) {
-            const director = await this.directorRepository.findOne({
-                where: {
-                    id: directorId,
-                },
+        try {
+            const director = await qr.manager.findOne(Director, {
+                where: { id: createMovieDto.directorId },
             });
 
             if (!director) {
                 throw new NotFoundException('존재하지 않는 ID의 감독입니다.');
             }
 
-            newDirector = director;
-        }
+            const genres = await qr.manager.find(Genre, {
+                where: {
+                    id: In(createMovieDto.genreIds),
+                },
+            });
 
-        let newGenres;
-        if (genreIds) {
-            const genres = await this.genreRepository.find({ where: { id: In(genreIds) } });
-
-            if (genres.length !== updateMovieDto.genreIds.length) {
+            // 찾은 장르의 갯수가 등록하는 장르의 갯수와 같지 않으면 오류
+            if (genres.length !== createMovieDto.genreIds.length) {
                 throw new NotFoundException(
                     `존재하지 않는 장르가 있습니다. -> ${genres.map((genre) => genre.id).join(',')}`,
                 );
             }
 
-            newGenres = genres;
-        }
+            const movieDetail = await qr.manager
+                .createQueryBuilder()
+                .insert()
+                .into(MovieDetail)
+                .values({ detail: createMovieDto.detail })
+                .execute();
 
-        const movieUpdateFields = {
-            ...movieRest,
-            ...(newDirector && { director: newDirector }),
-        };
+            // throw new NotFoundException('일부로 에러');
 
-        // newDirector가 존재하면 객체 형식으로 들어감
-        // {
-        //     ...movieRest,
-        //     director: director(엔티티)
-        // }
+            const movieDetailId = movieDetail.identifiers[0].id;
 
-        await this.movieRepository.update({ id }, movieUpdateFields);
+            const movie = await qr.manager
+                .createQueryBuilder()
+                .insert()
+                .into(Movie)
+                .values({
+                    title: createMovieDto.title,
+                    detail: {
+                        id: movieDetailId,
+                    },
+                    director,
+                })
+                .execute();
 
-        if (detail) {
-            await this.movieDetailRepository.update(
-                {
-                    id: movie.detail.id,
+            const movieId = movie.identifiers[0].id;
+
+            await qr.manager
+                .createQueryBuilder()
+                .relation(Movie, 'genres')
+                .of(movieId)
+                .add(genres.map((genre) => genre.id));
+
+            // const movie: Movie = await this.movieRepository.save({
+            //     title: createMovieDto.title,
+            //     detail: {
+            //         detail: createMovieDto.detail,
+            //     },
+            //     director,
+            //     genres,
+            // });
+
+            // return movie;
+
+            await qr.commitTransaction();
+
+            return await this.movieRepository.findOne({
+                where: {
+                    id: movieId,
                 },
-                {
-                    detail,
-                },
-            );
+                relations: ['detail', 'director', 'genres'],
+            });
+        } catch (e) {
+            await qr.rollbackTransaction();
+
+            throw e;
+        } finally {
+            await qr.release();
         }
+    }
 
-        const newMoive = await this.movieRepository.findOne({
-            where: {
-                id,
-            },
-            relations: ['detail', 'director'],
-        });
+    async update(id: number, updateMovieDto: UpdateMovieDto) {
+        const qr = this.dataSource.createQueryRunner();
+        await qr.connect();
+        await qr.startTransaction();
 
-        newMoive.genres = newGenres; // 장르를 대입
+        try {
+            const movie: Movie = await qr.manager.findOne(Movie, {
+                where: {
+                    id,
+                },
+                relations: ['detail', 'genres'],
+            });
 
-        await this.movieRepository.save(newMoive); // 대입된 영화를 저장
+            if (!movie) {
+                throw new NotFoundException('존재하지 않는 ID의 영화입니다!');
+            }
 
-        return this.movieRepository.findOne({
-            where: {
-                id,
-            },
-            relations: ['detail', 'director', 'genres'],
-        });
+            const { detail, directorId, genreIds, ...movieRest } = updateMovieDto;
+
+            let newDirector;
+
+            if (directorId) {
+                const director = await qr.manager.findOne(Director, {
+                    where: {
+                        id: directorId,
+                    },
+                });
+
+                if (!director) {
+                    throw new NotFoundException('존재하지 않는 ID의 감독입니다.');
+                }
+
+                newDirector = director;
+            }
+
+            let newGenres;
+            if (genreIds) {
+                const genres = await qr.manager.find(Genre, { where: { id: In(genreIds) } });
+
+                if (genres.length !== updateMovieDto.genreIds.length) {
+                    throw new NotFoundException(
+                        `존재하지 않는 장르가 있습니다. -> ${genres.map((genre) => genre.id).join(',')}`,
+                    );
+                }
+
+                newGenres = genres;
+            }
+
+            const movieUpdateFields = {
+                ...movieRest,
+                ...(newDirector && { director: newDirector }),
+            };
+
+            await qr.manager
+                .createQueryBuilder()
+                .update(Movie)
+                .set(movieUpdateFields)
+                .where('id = :id', { id })
+                .execute();
+
+            // throw new NotFoundException('에러 일부로 던짐!');
+
+            // newDirector가 존재하면 객체 형식으로 들어감
+            // {
+            //     ...movieRest,
+            //     director: director(엔티티)
+            // }
+
+            // await this.movieRepository.update({ id }, movieUpdateFields);
+
+            if (detail) {
+                await qr.manager
+                    .createQueryBuilder()
+                    .update(MovieDetail)
+                    .set({ detail })
+                    .where('id = :id', { id: movie.detail.id })
+                    .execute();
+
+                // await this.movieDetailRepository.update(
+                //     {
+                //         id: movie.detail.id,
+                //     },
+                //     {
+                //         detail,
+                //     },
+                // );
+            }
+
+            if (newGenres) {
+                await qr.manager
+                    .createQueryBuilder()
+                    .relation(Movie, 'genres')
+                    .of(id)
+                    // 새로 추가하고 원래 존재하던 id들은 삭제
+                    .addAndRemove(
+                        newGenres.map((genre) => genre.id),
+                        movie.genres.map((genre) => genre.id),
+                    );
+            }
+
+            // const newMoive = await this.movieRepository.findOne({
+            //     where: {
+            //         id,
+            //     },
+            //     relations: ['detail', 'director'],
+            // });
+            //
+            // newMoive.genres = newGenres; // 장르를 대입
+            //
+            // await this.movieRepository.save(newMoive); // 대입된 영화를 저장
+
+            await qr.commitTransaction();
+
+            return this.movieRepository.findOne({
+                where: {
+                    id,
+                },
+                relations: ['detail', 'director', 'genres'],
+            });
+        } catch (e) {
+            await qr.rollbackTransaction();
+            throw e;
+        } finally {
+            await qr.release();
+        }
     }
 
     async remove(id: number) {
@@ -184,6 +299,8 @@ export class MovieService {
         if (!movie) {
             throw new NotFoundException('존해하지 않는 ID의 영화입니다.');
         }
+
+        await this.movieRepository.createQueryBuilder().delete().where('id = :id', { id }).execute();
 
         await this.movieRepository.delete(id);
         await this.movieDetailRepository.delete(movie.detail.id);
