@@ -5,10 +5,9 @@
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "esModuleInterop": true,
+    "esModuleInterop": true, // 리액트처럼 임포트
     "allowSyntheticDefaultImports": true,
-    // 사용하지 않는 변수에 대한 경고 비활성화
-    "noUnusedLocals": false,
+    "noUnusedLocals": false, // 사용하지 않는 변수에 대한 경고 비활성화
     "noUnusedParameters": false,
     "target": "ES2021",
     "sourceMap": true,

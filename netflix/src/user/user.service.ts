@@ -13,8 +13,14 @@ export class UserService {
         private readonly userRepository: Repository<User>,
     ) {}
 
-    create(createUserDto: CreateUserDto) {
-        return this.userRepository.save(createUserDto);
+    // create(createUserDto: CreateUserDto) {
+    //     return this.userRepository.save(createUserDto);
+    // }
+
+    async create(createUserDto: CreateUserDto) {
+        console.log(createUserDto.email, createUserDto.password); // 수정된 부분
+        const user = this.userRepository.create(createUserDto);
+        return await this.userRepository.save(user);
     }
 
     findAll() {
