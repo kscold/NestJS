@@ -16,6 +16,8 @@ import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { envVariableKeys } from './common/const/env.const';
 import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/guard/auth.guard';
 
 @Module({
     imports: [
@@ -44,6 +46,7 @@ import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware
                 REFRESH_TOKEN_SECRET: Joi.string().required(),
                 entities: [Movie, MovieDetail, Director, Genre, User],
                 synchronize: true,
+                // dropSchema: true,
             }),
             inject: [ConfigService], // IoC가 useFactory에 넣어줌
         }),
@@ -54,7 +57,7 @@ import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware
         AuthModule,
     ],
     controllers: [],
-    providers: [],
+    providers: [{ provide: APP_GUARD, useClass: AuthGuard }],
 })
 export class AppModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
