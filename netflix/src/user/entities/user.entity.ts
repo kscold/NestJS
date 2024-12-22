@@ -1,11 +1,10 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { BaseTable } from '../../common/entity/base-table.entity';
-import { Exclude } from 'class-transformer';
 
 export enum Role {
-    admin = 'admin', // enum 값도 문자열로 지정
-    paidUser = 'paid',
-    user = 'user',
+    admin, // 0
+    paidUser, // 1
+    user, // 2
 }
 
 @Entity()

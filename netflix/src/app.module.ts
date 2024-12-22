@@ -1,23 +1,25 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import Joi from 'joi';
 
-import { MovieModule } from './movie/movie.module';
-import { DirectorModule } from './director/director.module';
+import { envVariableKeys } from './common/const/env.const';
+import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
+import { AuthGuard } from './auth/guard/auth.guard';
+import { RBACGuard } from './auth/guard/rbac.guard';
 
 import { Movie } from './movie/entity/movie.entity';
 import { MovieDetail } from './movie/entity/movie-detail.entity';
 import { Director } from './director/entity/director.entity';
-import { GenreModule } from './genre/genre.module';
 import { Genre } from './genre/entity/genre.entity';
+import { User } from './user/entities/user.entity';
+
+import { MovieModule } from './movie/movie.module';
+import { DirectorModule } from './director/director.module';
+import { GenreModule } from './genre/genre.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { User } from './user/entities/user.entity';
-import { envVariableKeys } from './common/const/env.const';
-import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
-import { APP_GUARD } from '@nestjs/core';
-import { AuthGuard } from './auth/guard/auth.guard';
 
 @Module({
     imports: [
@@ -57,7 +59,10 @@ import { AuthGuard } from './auth/guard/auth.guard';
         AuthModule,
     ],
     controllers: [],
-    providers: [{ provide: APP_GUARD, useClass: AuthGuard }],
+    providers: [
+        { provide: APP_GUARD, useClass: AuthGuard },
+        { provide: APP_GUARD, useClass: RBACGuard },
+    ],
 })
 export class AppModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
