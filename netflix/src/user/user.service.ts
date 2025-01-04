@@ -1,16 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import useRealTimers = jest.useRealTimers;
+
+import bcrypt from 'bcrypt';
+import { envVariableKeys } from '../common/const/env.const';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+
+        private readonly configService: ConfigService,
     ) {}
 
     // create(createUserDto: CreateUserDto) {
@@ -18,9 +23,38 @@ export class UserService {
     // }
 
     async create(createUserDto: CreateUserDto) {
-        console.log(createUserDto.email, createUserDto.password); // 수정된 부분
-        const user = this.userRepository.create(createUserDto);
-        return await this.userRepository.save(user);
+        // console.log(createUserDto.email, createUserDto.password); // 수정된 부분
+        // const user = this.userRepository.create(createUserDto);
+        //
+        // return await this.userRepository.save(user);
+
+        const { email, password } = createUserDto;
+
+        const user = await this.userRepository.findOne({
+            where: {
+                email,
+            },
+        });
+
+        if (user) {
+            throw new BadRequestException('이미 가입한 이메일 입니다!');
+        }
+
+        // this.configService.get<number>(envVariableKeys.hashRounds);
+        const hash = await bcrypt.hash(password, 10);
+
+        console.log(hash);
+
+        await this.userRepository.save({
+            email,
+            password: hash,
+        });
+
+        return this.userRepository.findOne({
+            where: {
+                email,
+            },
+        });
     }
 
     findAll() {

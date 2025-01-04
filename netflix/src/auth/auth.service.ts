@@ -7,12 +7,15 @@ import { Role, User } from '../user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { envVariableKeys } from '../common/const/env.const';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class AuthService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+
+        private readonly userService: UserService,
         private readonly configService: ConfigService,
         private readonly jwtService: JwtService,
     ) {}
@@ -47,6 +50,7 @@ export class AuthService {
     }
 
     async parseBearerToken(rawToken: string, isRefreshToken: boolean) {
+        console.log(rawToken);
         const basicSplit = rawToken.split(' ');
 
         if (basicSplit.length !== 2) {
@@ -55,7 +59,9 @@ export class AuthService {
 
         const [bearer, token] = basicSplit;
 
-        if (bearer.toLowerCase() !== 'basic') {
+        console.log(bearer, token);
+
+        if (bearer.toLowerCase() !== 'bearer') {
             throw new BadRequestException('토큰 포맷이 잘못됐습니다!');
         }
 
@@ -85,19 +91,21 @@ export class AuthService {
     async register(rawToken: string) {
         const { email, password } = this.parseBasicToken(rawToken);
 
-        const user = await this.userRepository.findOne({ where: { email } });
+        // const user = await this.userRepository.findOne({ where: { email } });
+        //
+        // if (!user) {
+        //     throw new BadRequestException('이미 가입한 이메일입니다!');
+        // }
+        //
+        // const hash = await bcrypt.hash(password, this.configService.get<number>(envVariableKeys.hashRounds));
+        //
+        // await this.userRepository.save({ email, password: hash });
+        //
+        // return this.userRepository.findOne({
+        //     where: { email },
+        // });
 
-        if (!user) {
-            throw new BadRequestException('이미 가입한 이메일입니다!');
-        }
-
-        const hash = await bcrypt.hash(password, this.configService.get<number>(envVariableKeys.hashRounds));
-
-        await this.userRepository.save({ email, password: hash });
-
-        return this.userRepository.findOne({
-            where: { email },
-        });
+        return this.userService.create({ email, password });
     }
 
     async authenticate(email: string, password: string) {
