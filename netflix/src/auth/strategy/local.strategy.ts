@@ -1,9 +1,10 @@
+import { Injectable } from '@nestjs/common';
 import { AuthGuard, PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
-import { Injectable } from '@nestjs/common';
 
 import { AuthService } from '../auth.service';
 
+// 가드 생성
 export class LocalAuthGuard extends AuthGuard('codefactory') {}
 
 @Injectable()

@@ -1,5 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { BaseTable } from '../../common/entity/base-table.entity';
+import { Exclude } from 'class-transformer';
 
 export enum Role {
     admin, // 0
@@ -16,6 +17,7 @@ export class User extends BaseTable {
     email: string;
 
     @Column()
+    @Exclude({ toPlainOnly: true }) // 응답일때에는 제외
     password: string;
 
     @Column({

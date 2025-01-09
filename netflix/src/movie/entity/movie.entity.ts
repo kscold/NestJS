@@ -8,6 +8,7 @@ import {
     OneToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
+
 import { BaseTable } from '../../common/entity/base-table.entity';
 import { MovieDetail } from './movie-detail.entity';
 import { Director } from '../../director/entity/director.entity';

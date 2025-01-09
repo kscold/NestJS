@@ -11,16 +11,19 @@ export class AuthController {
 
     @Public()
     @Post('register')
+    // authorization: Basic $token
     registerUser(@Headers('authorization') token: string) {
         return this.authService.register(token);
     }
 
     @Public()
     @Post('login')
+    // authorization: Basic $token
     loginUser(@Headers('authorization') token: string) {
         return this.authService.login(token);
     }
 
+    @Public()
     @Post('token/access')
     async rotateAccessToken(@Headers('authorization') token: string) {
         const payload = await this.authService.parseBearerToken(token, true);
@@ -30,6 +33,7 @@ export class AuthController {
         };
     }
 
+    @Public()
     @UseGuards(LocalAuthGuard)
     @Post('login/passport')
     async loginUserPassport(@Request() req) {
@@ -39,8 +43,10 @@ export class AuthController {
         };
     }
 
-    @Get('private')
+    @Public()
     @UseGuards(JwtAuthGuard)
+    @Get('private')
+    // authorization: Bearer $token
     async private(@Request() req) {
         return req.user;
     }
