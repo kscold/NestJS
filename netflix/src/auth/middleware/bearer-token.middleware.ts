@@ -15,7 +15,7 @@ export class BearerTokenMiddleware implements NestMiddleware {
     async use(req: Request, res: Response, next: NextFunction) {
         // Basic $token
         // Bearer $token
-        const authHeader = req.header['authorization'];
+        const authHeader = req.headers['authorization'];
 
         if (!authHeader) {
             next();
@@ -24,7 +24,7 @@ export class BearerTokenMiddleware implements NestMiddleware {
 
         try {
             const token = this.validateBearerToken(authHeader);
-            const decodedPayload = this.jwtService.decode(token);
+            const decodedPayload = this.jwtService.decode(token); // 검증은 하지 않고 내용을 확인할 수 있음
 
             if (decodedPayload.type !== 'refresh' && decodedPayload.type !== 'access') {
                 throw new UnauthorizedException('잘못된 토큰입니다!');
@@ -42,6 +42,7 @@ export class BearerTokenMiddleware implements NestMiddleware {
             req.user = payload;
             next();
         } catch (e) {
+            // refresh 토큰용 에러
             if ((e.name = 'TokenExpiredError')) {
                 throw new UnauthorizedException('토큰이 만료되었습니다.');
             }
@@ -59,7 +60,7 @@ export class BearerTokenMiddleware implements NestMiddleware {
 
         const [bearer, token] = basicSplit;
 
-        if (bearer.toLowerCase() !== 'basic') {
+        if (bearer.toLowerCase() !== 'bearer') {
             throw new BadRequestException('토큰 포맷이 잘못됐습니다!');
         }
 

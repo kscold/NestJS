@@ -7,8 +7,6 @@ import bcrypt from 'bcrypt';
 
 import { envVariableKeys } from '../common/const/env.const';
 
-import { UserService } from '../user/user.service';
-
 import { Role, User } from '../user/entities/user.entity';
 
 @Injectable()
@@ -16,7 +14,6 @@ export class AuthService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-        private readonly userService: UserService,
         private readonly configService: ConfigService,
         private readonly jwtService: JwtService,
     ) {}
@@ -83,7 +80,6 @@ export class AuthService {
 
             return payload;
         } catch (e) {
-            console.log(e);
             throw new UnauthorizedException('토큰이 만료되었습니다!');
         }
     }
