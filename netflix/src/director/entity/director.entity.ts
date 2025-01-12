@@ -11,7 +11,7 @@ export class Director extends BaseTable {
     name: string;
 
     @Column()
-    dob: string;
+    dob: Date;
 
     @Column()
     nationality: string;

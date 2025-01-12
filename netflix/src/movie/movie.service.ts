@@ -8,26 +8,24 @@ import { Movie } from './entity/movie.entity';
 import { MovieDetail } from './entity/movie-detail.entity';
 import { Director } from '../director/entity/director.entity';
 import { Genre } from '../genre/entity/genre.entity';
+import { GetMoviesDto } from './dto/get-movies.dto';
+import { CommonService } from '../common/common.service';
 
 @Injectable()
 export class MovieService {
     constructor(
         @InjectRepository(Movie)
         private readonly movieRepository: Repository<Movie>,
-
         @InjectRepository(MovieDetail)
         private readonly movieDetailRepository: Repository<MovieDetail>,
 
-        @InjectRepository(Director)
-        private readonly directorRepository: Repository<Director>,
-
-        @InjectRepository(Genre)
-        private readonly genreRepository: Repository<Genre>,
-
+        private readonly commonService: CommonService,
         private readonly dataSource: DataSource,
     ) {}
 
-    async findAll(title?: string) {
+    async findAll(dto: GetMoviesDto) {
+        // const { title, take, page } = dto;
+        const { title } = dto;
         const qb = await this.movieRepository
             .createQueryBuilder('movie')
             .leftJoinAndSelect('movie.director', 'director')
@@ -37,20 +35,13 @@ export class MovieService {
             qb.where('movie.title LIKE :title', { title: `%${title}%` });
         }
 
-        return await qb.getManyAndCount();
-
-        // if (!title) {
-        //     return [
-        //         await this.movieRepository.find({
-        //             relations: ['director', 'genres'],
-        //         }),
-        //         await this.movieRepository.count(),
-        //     ];
+        // if (take && page) {
+        //     this.commonService.applyPagePaginationParmsToQb(qb, dto);
         // }
-        // return this.movieRepository.find({
-        //     where: { title: Like(`%${title}`) }, // 앞에 와일드카드 설정
-        //     relations: ['director', 'genres'],
-        // });
+
+        this.commonService.applyCursorPaginationParmsToQb(qb, dto);
+
+        return await qb.getManyAndCount();
     }
 
     async findOne(id: number) {
