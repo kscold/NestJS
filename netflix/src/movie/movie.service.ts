@@ -39,9 +39,11 @@ export class MovieService {
         //     this.commonService.applyPagePaginationParmsToQb(qb, dto);
         // }
 
-        this.commonService.applyCursorPaginationParmsToQb(qb, dto);
+        const { nextCursor } = await this.commonService.applyCursorPaginationParmsToQb(qb, dto);
 
-        return await qb.getManyAndCount();
+        const [data, count] = await qb.getManyAndCount();
+
+        return { data, nextCursor, count };
     }
 
     async findOne(id: number) {
