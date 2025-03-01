@@ -3,13 +3,12 @@ import { SelectQueryBuilder } from 'typeorm';
 
 import { PagePaginationDto } from './dto/page-pagination.dto';
 import { CursorPaginationDto } from './dto/cursor-pagination.dto';
-import { raw } from 'express';
 
 @Injectable()
 export class CommonService {
     constructor() {}
 
-    applyPagePaginationParmsToQb<T>(qb: SelectQueryBuilder<T>, dto: PagePaginationDto) {
+    applyPagePaginationParamsToQb<T>(qb: SelectQueryBuilder<T>, dto: PagePaginationDto) {
         const { take, page } = dto;
 
         const skip = (page - 1) * take;
@@ -18,10 +17,36 @@ export class CommonService {
         qb.skip(skip);
     }
 
-    async applyCursorPaginationParmsToQb<T>(qb: SelectQueryBuilder<T>, dto: CursorPaginationDto) {
-        const { cursor, order, take } = dto;
+    async applyCursorPaginationParamsToQb<T>(qb: SelectQueryBuilder<T>, dto: CursorPaginationDto) {
+        let { cursor, order, take } = dto;
 
         if (cursor) {
+            const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
+
+            // {
+            //     value: {
+            //         id: 27
+            //     },
+            //     order:['id_DESC']
+            // }
+
+            const cursorObj = JSON.parse(decodedCursor);
+
+            order = cursorObj.order;
+
+            const { values } = cursorObj;
+
+            // WHERE (colum1 > value1)
+            // OR (colum1 = value1 AND colum2 < value2)
+            // OR (colum1 = value1 AND colum2 = value2 AND colum3 > value3)
+            // (movie.column1, movie.column2, movie.column3) > (:value1, :value2, :value3)
+
+            const columns = Object.keys(values);
+            const comparisonOperator = order.some((o) => o.endsWith('DESC')) ? '<' : '>';
+            const whereConditions = columns.map((c) => `${qb.alias}.${c}`).join(',');
+            const whereParams = columns.map((c) => `:${c}`).join(',');
+
+            qb.where(`(${whereConditions}) ${comparisonOperator} (${whereParams})`, values);
         }
 
         // [id_DESC, likeCount_DESC]

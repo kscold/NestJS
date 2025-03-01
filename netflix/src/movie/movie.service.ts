@@ -39,7 +39,7 @@ export class MovieService {
         //     this.commonService.applyPagePaginationParmsToQb(qb, dto);
         // }
 
-        const { nextCursor } = await this.commonService.applyCursorPaginationParmsToQb(qb, dto);
+        const { nextCursor } = await this.commonService.applyCursorPaginationParamsToQb(qb, dto);
 
         const [data, count] = await qb.getManyAndCount();
 
