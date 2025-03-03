@@ -7,6 +7,7 @@ import {
     Param,
     Delete,
     Query,
+    Request,
     UseInterceptors,
     ClassSerializerInterceptor,
     ParseIntPipe,
@@ -14,12 +15,12 @@ import {
 
 import { Public } from '../auth/decorator/public.decorator';
 import { RBAC } from '../auth/decorator/rbac.decorator';
-import { MovieTitleValidationPipe } from './pipe/movie-title-validation.pipe';
+import { CacheInterceptor } from '../common/interceptor/cache.interceptor';
+import { TransactionInterceptor } from '../common/interceptor/transaction.interceptor';
 
 import { MovieService } from './movie.service';
 
 import { Role } from '../user/entities/user.entity';
-
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { GetMoviesDto } from './dto/get-movies.dto';
@@ -31,6 +32,7 @@ export class MovieController {
 
     @Get()
     @Public()
+    @UseInterceptors(CacheInterceptor)
     getMovies(@Query() dto: GetMoviesDto) {
         return this.movieService.findAll(dto);
     }
@@ -46,8 +48,9 @@ export class MovieController {
 
     @Post()
     @RBAC(Role.admin)
-    postMovie(@Body() body: CreateMovieDto) {
-        return this.movieService.create(body);
+    @UseInterceptors(TransactionInterceptor)
+    postMovie(@Body() body: CreateMovieDto, @Request() req) {
+        return this.movieService.create(body, req.queryRunner);
     }
 
     @Patch(':id')
