@@ -27,11 +27,11 @@ export class MovieService {
         const { title } = dto;
         const qb = await this.movieRepository
             .createQueryBuilder('movie')
-            .leftJoinAndSelect('movie.director', 'director')
-            .leftJoinAndSelect('movie.genres', 'genres');
+            .leftJoinAndSelect('videos.director', 'director')
+            .leftJoinAndSelect('videos.genres', 'genres');
 
         if (title) {
-            qb.where('movie.title LIKE :title', { title: `%${title}%` });
+            qb.where('videos.title LIKE :title', { title: `%${title}%` });
         }
 
         // if (take && page) {
@@ -48,13 +48,13 @@ export class MovieService {
     async findOne(id: number) {
         const movie = await this.movieRepository
             .createQueryBuilder('movie')
-            .leftJoinAndSelect('movie.detail', 'detail')
-            .leftJoinAndSelect('movie.director', 'director')
-            .leftJoinAndSelect('movie.genres', 'genres')
-            .where('movie.id = :id', { id })
+            .leftJoinAndSelect('videos.detail', 'detail')
+            .leftJoinAndSelect('videos.director', 'director')
+            .leftJoinAndSelect('videos.genres', 'genres')
+            .where('videos.id = :id', { id })
             .getOne();
 
-        // const movie = await this.movieRepository.findOne({
+        // const videos = await this.movieRepository.findOne({
         //     where: { id },
         //     relations: ['detail', 'director', 'genres'],
         // });
@@ -208,7 +208,7 @@ export class MovieService {
 
                 // await this.movieDetailRepository.update(
                 //     {
-                //         id: movie.detail.id,
+                //         id: videos.detail.id,
                 //     },
                 //     {
                 //         detail,

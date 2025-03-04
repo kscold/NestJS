@@ -39,7 +39,7 @@ export class CommonService {
             // WHERE (colum1 > value1)
             // OR (colum1 = value1 AND colum2 < value2)
             // OR (colum1 = value1 AND colum2 = value2 AND colum3 > value3)
-            // (movie.column1, movie.column2, movie.column3) > (:value1, :value2, :value3)
+            // (videos.column1, videos.column2, videos.column3) > (:value1, :value2, :value3)
 
             const columns = Object.keys(values);
             const comparisonOperator = order.some((o) => o.endsWith('DESC')) ? '<' : '>';

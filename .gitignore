@@ -305,3 +305,6 @@ fabric.properties
 # .pnp.*
 
 # End of https://www.toptal.com/developers/gitignore/api/node,macos,webstorm,yarn
+netflix/public/movie/
+
+netflix/assets/videos/
