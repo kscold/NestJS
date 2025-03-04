@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    NestMiddleware,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -44,7 +50,8 @@ export class BearerTokenMiddleware implements NestMiddleware {
         } catch (e) {
             // refresh 토큰용 에러
             if ((e.name = 'TokenExpiredError')) {
-                throw new UnauthorizedException('토큰이 만료되었습니다.');
+                // throw new UnauthorizedException('토큰이 만료되었습니다.');
+                throw new ForbiddenException('토큰이 만료되었습니다.');
             }
 
             next();

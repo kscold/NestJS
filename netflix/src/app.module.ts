@@ -1,7 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import Joi from 'joi';
 
 import { envVariableKeys } from './common/const/env.const';
@@ -21,6 +21,7 @@ import { GenreModule } from './genre/genre.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ResponseTimeInterceptor } from './common/interceptor/response-time.interceptor';
+import { ForbiddenExceptionFilter } from './common/filter/forbidden.filter';
 
 @Module({
     imports: [
@@ -64,6 +65,7 @@ import { ResponseTimeInterceptor } from './common/interceptor/response-time.inte
         { provide: APP_GUARD, useClass: AuthGuard },
         { provide: APP_GUARD, useClass: RBACGuard },
         { provide: APP_INTERCEPTOR, useClass: ResponseTimeInterceptor },
+        { provide: APP_FILTER, useClass: ForbiddenExceptionFilter },
     ],
 })
 export class AppModule implements NestModule {
