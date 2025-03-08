@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { join } from 'path';
+import { v4 } from 'uuid';
 
 import { CommonModule } from '../common/common.module';
 
@@ -22,6 +23,17 @@ import { Genre } from '../genre/entity/genre.entity';
         MulterModule.register({
             storage: diskStorage({
                 destination: join(process.cwd(), 'public', 'movie'),
+                // filename(req, file, cb) {
+                //     const split = file.originalname.split('.');
+                //
+                //     let extension = 'mp4';
+                //
+                //     if (split.length > 1) {
+                //         extension = split[split.length - 1];
+                //     }
+                //
+                //     cb(null, `${v4()}_${Date.now()}.${extension}`);
+                // },
             }),
         }),
     ],

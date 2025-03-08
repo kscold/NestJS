@@ -11,7 +11,8 @@ import {
     UseInterceptors,
     ClassSerializerInterceptor,
     ParseIntPipe,
-    UploadedFiles,
+    BadRequestException,
+    UploadedFile,
 } from '@nestjs/common';
 
 import { Public } from '../auth/decorator/public.decorator';
@@ -25,7 +26,8 @@ import { Role } from '../user/entities/user.entity';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { GetMoviesDto } from './dto/get-movies.dto';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { MovieFilePipe } from './pipe/movie-file.pipe';
 
 @Controller('movie')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -52,18 +54,34 @@ export class MovieController {
     @RBAC(Role.admin)
     @UseInterceptors(TransactionInterceptor)
     @UseInterceptors(
-        FileFieldsInterceptor([
-            { name: 'movie', maxCount: 1 },
-            { name: 'poster', maxCount: 2 },
-        ]),
+        FileInterceptor('movie', {
+            limits: {
+                fileSize: 20000000,
+            },
+            fileFilter(req, file, callback) {
+                console.log(file);
+
+                if (file.mimetype !== 'video/mp4') {
+                    return callback(new BadRequestException('MP4 타입만 업로드 가능합니다!'), false);
+                }
+
+                return callback(null, true);
+            },
+        }),
     )
     postMovie(
         @Body() body: CreateMovieDto,
         @Request() req,
-        @UploadedFiles() files: { movie?: Express.Multer.File[]; poster?: Express.Multer.File[] },
+        @UploadedFile(
+            new MovieFilePipe({
+                maxSize: 20,
+                mimetype: 'video/mp4',
+            }),
+        )
+        movie: Express.Multer.File,
     ) {
         console.log('------------');
-        console.log(files);
+        console.log(movie);
         return this.movieService.create(body, req.queryRunner);
     }
 
