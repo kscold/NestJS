@@ -1,16 +1,20 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { CreateMovieDto } from './dto/create-movie.dto';
-import { UpdateMovieDto } from './dto/update-movie.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { DataSource, In, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Like, QueryRunner, Repository } from 'typeorm';
+import { join } from 'path';
+import { rename } from 'fs/promises';
+
+import { CommonService } from '../common/common.service';
 
 import { Movie } from './entity/movie.entity';
 import { MovieDetail } from './entity/movie-detail.entity';
 import { Director } from '../director/entity/director.entity';
 import { Genre } from '../genre/entity/genre.entity';
+
+import { CreateMovieDto } from './dto/create-movie.dto';
+import { UpdateMovieDto } from './dto/update-movie.dto';
 import { GetMoviesDto } from './dto/get-movies.dto';
-import { CommonService } from '../common/common.service';
-import { join } from 'path';
+import process from 'node:process';
 
 @Injectable()
 export class MovieService {
@@ -67,7 +71,7 @@ export class MovieService {
         return movie;
     }
 
-    async create(createMovieDto: CreateMovieDto, movieFileName: string, qr: QueryRunner) {
+    async create(createMovieDto: CreateMovieDto, qr: QueryRunner) {
         const director = await qr.manager.findOne(Director, {
             where: { id: createMovieDto.directorId },
         });
@@ -101,6 +105,12 @@ export class MovieService {
         const movieDetailId = movieDetail.identifiers[0].id;
 
         const movieFolder = join('public', 'movie');
+        const tempFolder = join('public', 'temp');
+
+        await rename(
+            join(process.cwd(), tempFolder, createMovieDto.movieFileName),
+            join(process.cwd(), movieFolder, createMovieDto.movieFileName),
+        );
 
         const movie = await qr.manager
             .createQueryBuilder()
@@ -112,7 +122,7 @@ export class MovieService {
                     id: movieDetailId,
                 },
                 director,
-                movieFilePatch: join(movieFolder, movieFileName),
+                movieFilePatch: join(movieFolder, createMovieDto.movieFileName),
             })
             .execute();
 

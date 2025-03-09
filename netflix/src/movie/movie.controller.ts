@@ -69,8 +69,8 @@ export class MovieController {
             },
         }),
     )
-    postMovie(@Body() body: CreateMovieDto, @Request() req, @UploadedFile() movie: Express.Multer.File) {
-        return this.movieService.create(body, movie.filename, req.queryRunner);
+    postMovie(@Body() body: CreateMovieDto, @Request() req) {
+        return this.movieService.create(body, req.queryRunner);
     }
 
     @Patch(':id')

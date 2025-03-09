@@ -8,10 +8,11 @@ import {
     OneToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Transform } from 'class-transformer';
 
 import { BaseTable } from '../../common/entity/base-table.entity';
-import { MovieDetail } from './movie-detail.entity';
 import { Director } from '../../director/entity/director.entity';
+import { MovieDetail } from './movie-detail.entity';
 import { Genre } from '../../genre/entity/genre.entity';
 
 @Entity()
@@ -38,6 +39,7 @@ export class Movie extends BaseTable {
     detail: MovieDetail;
 
     @Column()
+    @Transform(({ value }) => `http://localhost:8080/${value}`)
     movieFilePatch: string;
 
     @ManyToOne(() => Director, (director) => director.id, {
