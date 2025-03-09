@@ -26,7 +26,7 @@ import { Role } from '../user/entities/user.entity';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { GetMoviesDto } from './dto/get-movies.dto';
-import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { MovieFilePipe } from './pipe/movie-file.pipe';
 
 @Controller('movie')
@@ -69,20 +69,8 @@ export class MovieController {
             },
         }),
     )
-    postMovie(
-        @Body() body: CreateMovieDto,
-        @Request() req,
-        @UploadedFile(
-            new MovieFilePipe({
-                maxSize: 20,
-                mimetype: 'video/mp4',
-            }),
-        )
-        movie: Express.Multer.File,
-    ) {
-        console.log('------------');
-        console.log(movie);
-        return this.movieService.create(body, req.queryRunner);
+    postMovie(@Body() body: CreateMovieDto, @Request() req, @UploadedFile() movie: Express.Multer.File) {
+        return this.movieService.create(body, movie.filename, req.queryRunner);
     }
 
     @Patch(':id')

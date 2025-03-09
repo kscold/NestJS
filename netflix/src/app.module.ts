@@ -2,6 +2,7 @@ import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/c
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import process from 'node:process';
 import Joi from 'joi';
 
 import { envVariableKeys } from './common/const/env.const';
@@ -23,6 +24,8 @@ import { UserModule } from './user/user.module';
 import { ResponseTimeInterceptor } from './common/interceptor/response-time.interceptor';
 import { ForbiddenExceptionFilter } from './common/filter/forbidden.filter';
 import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
     imports: [
@@ -60,6 +63,10 @@ import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter'
                 },
             }),
             inject: [ConfigService], // IoC가 useFactory에 넣어줌
+        }),
+        ServeStaticModule.forRoot({
+            rootPath: join(process.cwd(), 'public'),
+            serveRoot: '/public/',
         }),
         MovieModule,
         DirectorModule,

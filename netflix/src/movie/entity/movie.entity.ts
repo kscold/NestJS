@@ -37,6 +37,9 @@ export class Movie extends BaseTable {
     @JoinColumn()
     detail: MovieDetail;
 
+    @Column()
+    movieFilePatch: string;
+
     @ManyToOne(() => Director, (director) => director.id, {
         cascade: true,
         nullable: false, // 값이 null이 될 수 없도록 설정 즉, 선행되도록 만듬
