@@ -14,11 +14,15 @@ import { BaseTable } from '../../common/entity/base-table.entity';
 import { Director } from '../../director/entity/director.entity';
 import { MovieDetail } from './movie-detail.entity';
 import { Genre } from '../../genre/entity/genre.entity';
+import { User } from '../../user/entities/user.entity';
 
 @Entity()
 export class Movie extends BaseTable {
     @PrimaryGeneratedColumn()
     id: number;
+
+    @ManyToOne(() => User, (user) => user.createdMovies)
+    creator: User;
 
     @Column({ unique: true })
     title: string;
