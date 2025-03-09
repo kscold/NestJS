@@ -5,6 +5,7 @@ import {
     JoinTable,
     ManyToMany,
     ManyToOne,
+    OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -15,6 +16,7 @@ import { Director } from '../../director/entity/director.entity';
 import { MovieDetail } from './movie-detail.entity';
 import { Genre } from '../../genre/entity/genre.entity';
 import { User } from '../../user/entities/user.entity';
+import { MovieUserLike } from './movie-user-like.entity';
 
 @Entity()
 export class Movie extends BaseTable {
@@ -51,4 +53,7 @@ export class Movie extends BaseTable {
         nullable: false, // 값이 null이 될 수 없도록 설정 즉, 선행되도록 만듬
     }) // director의 id로 가져옴
     director: Director;
+
+    @OneToMany(() => MovieUserLike, (mul) => mul.movie)
+    likedUsers: MovieUserLike[];
 }
