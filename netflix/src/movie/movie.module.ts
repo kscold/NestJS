@@ -15,10 +15,12 @@ import { Movie } from './entity/movie.entity';
 import { MovieDetail } from './entity/movie-detail.entity';
 import { Director } from '../director/entity/director.entity';
 import { Genre } from '../genre/entity/genre.entity';
+import { MovieUserLike } from './entity/movie-user-like.entity';
+import { User } from '../user/entities/user.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Movie, MovieDetail, Director, Genre]),
+        TypeOrmModule.forFeature([Movie, MovieDetail, MovieUserLike, Director, Genre, User]),
         CommonModule,
         // MulterModule.register({
         //     storage: diskStorage({
