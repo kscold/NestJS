@@ -1,9 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MulterModule } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { join } from 'path';
-import { v4 } from 'uuid';
+import { CacheModule } from '@nestjs/cache-manager';
 
 import { CommonModule } from '../common/common.module';
 
@@ -22,6 +19,7 @@ import { User } from '../user/entities/user.entity';
     imports: [
         TypeOrmModule.forFeature([Movie, MovieDetail, MovieUserLike, Director, Genre, User]),
         CommonModule,
+        CacheModule.register({ ttl: 3000 }),
         // MulterModule.register({
         //     storage: diskStorage({
         //         destination: join(process.cwd(), 'public', 'movie'),

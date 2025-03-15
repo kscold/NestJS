@@ -1,8 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { DataSource, In, QueryRunner, Repository } from 'typeorm';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
-import { join } from 'path';
+import process from 'node:process';
 import { rename } from 'fs/promises';
+import { join } from 'path';
 
 import { CommonService } from '../common/common.service';
 
@@ -14,7 +16,6 @@ import { Genre } from '../genre/entity/genre.entity';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { GetMoviesDto } from './dto/get-movies.dto';
-import process from 'node:process';
 import { User } from '../user/entities/user.entity';
 import { MovieUserLike } from './entity/movie-user-like.entity';
 
@@ -32,7 +33,31 @@ export class MovieService {
 
         private readonly commonService: CommonService,
         private readonly dataSource: DataSource,
+
+        @Inject(CACHE_MANAGER)
+        private readonly cacheManager: Cache,
     ) {}
+
+    async findRecent() {
+        const cacheData = await this.cacheManager.get('MOVIE_RECENT');
+
+        // cacheData가 있으면 그대로 반환
+        if (cacheData) {
+            console.log('cache 가져옴!');
+            return cacheData;
+        }
+
+        const data = await this.movieRepository.find({
+            order: {
+                createdAt: 'DESC',
+            },
+            take: 10,
+        });
+
+        await this.cacheManager.set('MOVIE_RECENT', data);
+
+        return data;
+    }
 
     async findAll(dto: GetMoviesDto, userId?: number) {
         // const { title, take, page } = dto;

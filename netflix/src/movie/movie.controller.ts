@@ -40,6 +40,12 @@ export class MovieController {
         return this.movieService.findAll(dto, userId);
     }
 
+    // 선언위치가 중요 :id에 먼저 걸리지 않도록 설정해야함
+    @Get('recent')
+    getMoviesRecent() {
+        return this.movieService.findRecent();
+    }
+
     @Get(':id')
     @Public()
     getMovie(
