@@ -12,6 +12,7 @@ import {
     ParseIntPipe,
 } from '@nestjs/common';
 import { QueryRunner as QR } from 'typeorm';
+import { CacheInterceptor as CI, CacheKey, CacheTTL } from '@nestjs/cache-manager';
 
 import { Public } from '../auth/decorator/public.decorator';
 import { RBAC } from '../auth/decorator/rbac.decorator';
@@ -42,7 +43,11 @@ export class MovieController {
 
     // 선언위치가 중요 :id에 먼저 걸리지 않도록 설정해야함
     @Get('recent')
+    @UseInterceptors(CI) // 엔드포인트 자체를 캐싱 엔드포린트가 key가, 따라서 쿼리/파라미터는 캐싱이 안됨
+    @CacheKey('getMoviesRecent') // 쿼리/파라미터까지 캐싱
+    @CacheTTL(1000)
     getMoviesRecent() {
+        console.log('getMoviesRecent() 실행!');
         return this.movieService.findRecent();
     }
 

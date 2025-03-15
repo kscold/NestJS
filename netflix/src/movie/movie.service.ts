@@ -43,7 +43,7 @@ export class MovieService {
 
         // cacheData가 있으면 그대로 반환
         if (cacheData) {
-            console.log('cache 가져옴!');
+            // console.log('cache 가져옴!');
             return cacheData;
         }
 
