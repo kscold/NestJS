@@ -25,25 +25,31 @@ export class BearerTokenMiddleware implements NestMiddleware {
             return;
         }
 
+        const token = this.validateBearerToken(authHeader);
+
+        const blockToken = await this.cacheManager.get(`BLOCK_TOKEN_${token}`);
+
+        if (blockToken) {
+            throw new UnauthorizedException('차단된 토큰입니다!');
+        }
+
+        const tokenKey = `TOKEN_${token}`;
+        const cachedPayload = await this.cacheManager.get(tokenKey);
+
+        if (cachedPayload) {
+            console.log('---- cache run ----');
+            req.user = cachedPayload;
+
+            return next();
+        }
+
+        const decodedPayload = this.jwtService.decode(token); // 검증은 하지 않고 내용을 확인할 수 있음
+
+        if (decodedPayload.type !== 'refresh' && decodedPayload.type !== 'access') {
+            throw new UnauthorizedException('잘못된 토큰입니다!');
+        }
+
         try {
-            const token = this.validateBearerToken(authHeader);
-
-            const tokenKey = `TOKEN_${token}`;
-            const cachedPayload = await this.cacheManager.get(tokenKey);
-
-            if (cachedPayload) {
-                console.log('---- cache run ----');
-                req.user = cachedPayload;
-
-                return next();
-            }
-
-            const decodedPayload = this.jwtService.decode(token); // 검증은 하지 않고 내용을 확인할 수 있음
-
-            if (decodedPayload.type !== 'refresh' && decodedPayload.type !== 'access') {
-                throw new UnauthorizedException('잘못된 토큰입니다!');
-            }
-
             const secretKey =
                 decodedPayload.type === 'refresh'
                     ? envVariableKeys.refreshTokenSecret
@@ -76,7 +82,6 @@ export class BearerTokenMiddleware implements NestMiddleware {
             // refresh 토큰용 에러
             if ((e.name = 'TokenExpiredError')) {
                 throw new UnauthorizedException('토큰이 만료되었습니다.');
-                // throw new ForbiddenException('토큰이 만료되었습니다.');
             }
 
             next();

@@ -1,6 +1,7 @@
-import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
@@ -16,7 +17,23 @@ export class AuthService {
         private readonly userRepository: Repository<User>,
         private readonly configService: ConfigService,
         private readonly jwtService: JwtService,
+
+        @Inject(CACHE_MANAGER)
+        private readonly cacheManager: Cache,
     ) {}
+
+    async tokenBlock(token: string) {
+        const payload = this.jwtService.decode(token);
+
+        const expiryDate = +new Date(payload['exp'] * 1000);
+        const now = +new Date();
+
+        const differenceInSeconds = (expiryDate - now) / 1000;
+
+        await this.cacheManager.set(`BLOCK_TOKEN_${token}`, payload, Math.max(differenceInSeconds * 1000, 1));
+
+        return true;
+    }
 
     parseBasicToken(rawToken: string) {
         // 1. 토큰을 띄어쓰기 기준으로 스플릿 한 후 토큰 값만 추출하기
