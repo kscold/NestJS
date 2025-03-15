@@ -19,7 +19,6 @@ import { User } from '../user/entities/user.entity';
     imports: [
         TypeOrmModule.forFeature([Movie, MovieDetail, MovieUserLike, Director, Genre, User]),
         CommonModule,
-        CacheModule.register({ ttl: 0 }),
         // MulterModule.register({
         //     storage: diskStorage({
         //         destination: join(process.cwd(), 'public', 'movie'),

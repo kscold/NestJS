@@ -1,13 +1,8 @@
-import {
-    BadRequestException,
-    ForbiddenException,
-    Injectable,
-    NestMiddleware,
-    UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { NextFunction, Request, Response } from 'express';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 import { envVariableKeys } from '../../common/const/env.const';
 
@@ -16,6 +11,8 @@ export class BearerTokenMiddleware implements NestMiddleware {
     constructor(
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
+        @Inject(CACHE_MANAGER)
+        private readonly cacheManager: Cache,
     ) {}
 
     async use(req: Request, res: Response, next: NextFunction) {
@@ -30,6 +27,17 @@ export class BearerTokenMiddleware implements NestMiddleware {
 
         try {
             const token = this.validateBearerToken(authHeader);
+
+            const tokenKey = `TOKEN_${token}`;
+            const cachedPayload = await this.cacheManager.get(tokenKey);
+
+            if (cachedPayload) {
+                console.log('---- cache run ----');
+                req.user = cachedPayload;
+
+                return next();
+            }
+
             const decodedPayload = this.jwtService.decode(token); // 검증은 하지 않고 내용을 확인할 수 있음
 
             if (decodedPayload.type !== 'refresh' && decodedPayload.type !== 'access') {
@@ -45,13 +53,30 @@ export class BearerTokenMiddleware implements NestMiddleware {
                 secret: this.configService.get<string>(secretKey),
             });
 
+            // payload['exp'] -> epoch time seconds
+            const expiryDate = +new Date(payload['exp'] * 1000);
+            // payload['exp'] == 1710000000
+            // payload['exp'] * 1000 == 1710000000 * 1000 = 1710000000000
+            // new Date(1710000000000) == Sun Mar 10 2024 05:20:00 GMT+0000
+            // +new Date(1710000000000) == 1710000000000
+            const now = +Date.now(); // 1709999940000
+
+            const differenceInSeconds = (expiryDate - now) / 1000; // 초로 변환
+            // (expiryDate - now) / 1000 == 60000 / 1000 = 60
+
+            // TTL를 -30초를 해서 안전시간을 확보, 최대 0.001초로 설정해서 오류를 방지
+            await this.cacheManager.set(tokenKey, payload, Math.max((differenceInSeconds - 30) * 1000, 1));
+            // differenceInSeconds - 30 == 60 - 30 = 30
+            // (differenceInSeconds - 30) * 1000 == 30 * 1000 = 30000
+            // Math.max(30000, 1) == 30000
+
             req.user = payload;
             next();
         } catch (e) {
             // refresh 토큰용 에러
             if ((e.name = 'TokenExpiredError')) {
-                // throw new UnauthorizedException('토큰이 만료되었습니다.');
-                throw new ForbiddenException('토큰이 만료되었습니다.');
+                throw new UnauthorizedException('토큰이 만료되었습니다.');
+                // throw new ForbiddenException('토큰이 만료되었습니다.');
             }
 
             next();
