@@ -28,6 +28,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { MovieUserLike } from './movie/entity/movie-user-like.entity';
 import { CacheModule } from '@nestjs/cache-manager';
+import { Throttle } from './common/decorator/throttle.decorator';
+import { ThrottleInterceptor } from './common/interceptor/throttle.interceptor';
 
 @Module({
     imports: [
@@ -82,8 +84,9 @@ import { CacheModule } from '@nestjs/cache-manager';
         { provide: APP_GUARD, useClass: AuthGuard },
         { provide: APP_GUARD, useClass: RBACGuard },
         { provide: APP_INTERCEPTOR, useClass: ResponseTimeInterceptor },
-        { provide: APP_FILTER, useClass: ForbiddenExceptionFilter },
+        // { provide: APP_FILTER, useClass: ForbiddenExceptionFilter },
         { provide: APP_FILTER, useClass: QueryFailedExceptionFilter },
+        { provide: APP_INTERCEPTOR, useClass: ThrottleInterceptor },
     ],
 })
 export class AppModule implements NestModule {

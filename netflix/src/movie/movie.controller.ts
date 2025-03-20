@@ -28,6 +28,7 @@ import { Role } from '../user/entities/user.entity';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { GetMoviesDto } from './dto/get-movies.dto';
+import { Throttle } from '../common/decorator/throttle.decorator';
 
 @Controller('movie')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -36,8 +37,11 @@ export class MovieController {
 
     @Get()
     @Public()
-    @UseInterceptors(CacheInterceptor)
-    getMovies(@Query() dto: GetMoviesDto, @UserId() userId: number) {
+    @Throttle({
+        count: 5,
+        unit: 'minute',
+    })
+    getMovies(@Query() dto: GetMoviesDto, @UserId() userId?: number) {
         return this.movieService.findAll(dto, userId);
     }
 
