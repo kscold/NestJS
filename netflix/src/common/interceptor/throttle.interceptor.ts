@@ -27,7 +27,7 @@ export class ThrottleInterceptor implements NestInterceptor {
         const throttleOptions = this.reflector.get<{
             count: number;
             unit: 'minute';
-        }>(Throttle, context.getHandler);
+        }>(Throttle, context.getHandler());
 
         if (!throttleOptions) {
             return next.handle();
