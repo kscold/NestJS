@@ -1,35 +1,36 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { CacheModule } from '@nestjs/cache-manager';
+import { ScheduleModule } from '@nestjs/schedule';
 import process from 'node:process';
+import { join } from 'path';
 import Joi from 'joi';
+import crypto from 'crypto';
 
 import { envVariableKeys } from './common/const/env.const';
 import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
 import { AuthGuard } from './auth/guard/auth.guard';
 import { RBACGuard } from './auth/guard/rbac.guard';
+import { ResponseTimeInterceptor } from './common/interceptor/response-time.interceptor';
+import { ThrottleInterceptor } from './common/interceptor/throttle.interceptor';
+import { ForbiddenExceptionFilter } from './common/filter/forbidden.filter';
+import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter';
 
 import { Movie } from './movie/entity/movie.entity';
 import { MovieDetail } from './movie/entity/movie-detail.entity';
 import { Director } from './director/entity/director.entity';
 import { Genre } from './genre/entity/genre.entity';
 import { User } from './user/entities/user.entity';
+import { MovieUserLike } from './movie/entity/movie-user-like.entity';
 
+import { GenreModule } from './genre/genre.module';
 import { MovieModule } from './movie/movie.module';
 import { DirectorModule } from './director/director.module';
-import { GenreModule } from './genre/genre.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { ResponseTimeInterceptor } from './common/interceptor/response-time.interceptor';
-import { ForbiddenExceptionFilter } from './common/filter/forbidden.filter';
-import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
-import { MovieUserLike } from './movie/entity/movie-user-like.entity';
-import { CacheModule } from '@nestjs/cache-manager';
-import { Throttle } from './common/decorator/throttle.decorator';
-import { ThrottleInterceptor } from './common/interceptor/throttle.interceptor';
 
 @Module({
     imports: [
@@ -73,6 +74,7 @@ import { ThrottleInterceptor } from './common/interceptor/throttle.interceptor';
             serveRoot: '/public/',
         }),
         CacheModule.register({ ttl: 0, isGlobal: true }),
+        ScheduleModule.forRoot(),
         MovieModule,
         DirectorModule,
         GenreModule,
