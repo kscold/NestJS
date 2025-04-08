@@ -8,6 +8,8 @@ import { CommonController } from './common.controller';
 
 import { CommonService } from './common.service';
 import { TasksService } from './tasks.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Movie } from '../movie/entity/movie.entity';
 
 @Module({
     imports: [
@@ -27,6 +29,7 @@ import { TasksService } from './tasks.service';
                 },
             }),
         }),
+        TypeOrmModule.forFeature([Movie]),
     ],
     controllers: [CommonController],
     providers: [CommonService, TasksService],

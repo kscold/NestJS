@@ -7,7 +7,9 @@ import { AppModule } from './app.module';
 global.crypto = crypto as unknown as Crypto;
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, {
+        logger: ['verbose'], // verbose 로그 위로만 보임
+    });
 
     app.useGlobalPipes(
         new ValidationPipe({

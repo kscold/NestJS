@@ -1,15 +1,31 @@
-import { Injectable } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { readdir, unlink } from 'fs/promises';
 import { join, parse } from 'path';
 import process from 'node:process';
 
+import { Movie } from '../movie/entity/movie.entity';
+
 @Injectable()
 export class TasksService {
-    constructor() {}
+    private readonly logger = new Logger(TasksService.name);
 
+    constructor(
+        @InjectRepository(Movie)
+        private readonly moiveRepository: Repository<Movie>,
+        private readonly schedulerRegistry: SchedulerRegistry,
+    ) {}
+
+    @Cron('*/5 * * * * *')
     logEverySecond() {
-        console.log('1초마다 실행!');
+        this.logger.fatal('FATAL 레벨 로그');
+        this.logger.error('ERROR 레벨 로그');
+        this.logger.warn('WARN 레벨 로그');
+        this.logger.log('LOG 레벨 로그');
+        this.logger.debug('DEBUG 레벨 로그');
+        this.logger.verbose('VERBOSE 레벨 로그');
     }
 
     @Cron('* * * * * *')
@@ -39,5 +55,52 @@ export class TasksService {
         });
 
         await Promise.all(deleteFilesTargets.map((x) => unlink(join(process.cwd(), 'public', 'temp', x))));
+    }
+
+    // @Cron('0 * * * * *')
+    async calculateMovieLikeCounts() {
+        console.log('run');
+        await this.moiveRepository.query(
+            `UPDATE movie m
+             SET "likeCount" = (SELECT count(*)
+                                FROM movie_user_like mul
+                                WHERE m.id = mul."movieId"
+                                  AND mul."isLike" = true)`,
+        );
+
+        await this.moiveRepository.query(
+            `UPDATE movie m
+             SET "disLikeCount" = (SELECT count(*)
+                                   FROM movie_user_like mul
+                                   WHERE m.id = mul."movieId"
+                                     AND mul."isLike" = false)`,
+        );
+    }
+
+    // @Cron('* * * * * *', {
+    //     name: 'printer',
+    // })
+    printer() {
+        console.log('print every senconds');
+    }
+
+    // @Cron('*/5 * * * * *')
+    stopper() {
+        console.log('---stopper run---');
+
+        const job = this.schedulerRegistry.getCronJob('printer');
+
+        // console.log('# Last Date');
+        // console.log(job.lastDate());
+        // console.log('# Next Date');
+        // console.log(job.nextDate());
+        console.log('# Next Date');
+        console.log(job.nextDates(5));
+
+        if (job.running) {
+            job.stop();
+        } else {
+            job.stop();
+        }
     }
 }

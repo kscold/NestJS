@@ -37,6 +37,10 @@ export class Movie extends BaseTable {
     @JoinTable()
     likeCount: number;
 
+    @Column({ default: 0 })
+    @JoinTable()
+    disLikeCount: number;
+
     @OneToOne(() => MovieDetail, (movieDetail) => movieDetail.id, {
         cascade: true, // 한번에 데이터를 생성하는 방식으로 사용
         nullable: false, // 값이 null이 될 수 없도록 설정 즉, 선행되도록 만듬
