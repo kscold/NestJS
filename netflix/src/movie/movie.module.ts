@@ -4,7 +4,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 
 import { CommonModule } from '../common/common.module';
 
-import { MovieController } from './movie.controller';
+import { MovieController, MovieControllerV2 } from './movie.controller';
 
 import { MovieService } from './movie.service';
 
@@ -36,7 +36,7 @@ import { User } from '../user/entities/user.entity';
         //     }),
         // }),
     ],
-    controllers: [MovieController],
+    controllers: [MovieController, MovieControllerV2],
     providers: [MovieService],
 })
 export class MovieModule {}
