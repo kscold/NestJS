@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import crypto from 'crypto';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 import { AppModule } from './app.module';
 
@@ -11,6 +12,7 @@ async function bootstrap() {
         logger: ['verbose'], // verbose 로그 위로만 보임
     });
 
+    app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
     app.useGlobalPipes(
         new ValidationPipe({
             whitelist: true,

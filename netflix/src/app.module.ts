@@ -8,7 +8,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import process from 'node:process';
 import { join } from 'path';
 import Joi from 'joi';
-import crypto from 'crypto';
+import winston from 'winston';
 
 import { envVariableKeys } from './common/const/env.const';
 import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
@@ -31,6 +31,7 @@ import { MovieModule } from './movie/movie.module';
 import { DirectorModule } from './director/director.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { WinstonModule } from 'nest-winston';
 
 @Module({
     imports: [
@@ -75,6 +76,31 @@ import { UserModule } from './user/user.module';
         }),
         CacheModule.register({ ttl: 0, isGlobal: true }),
         ScheduleModule.forRoot(),
+        WinstonModule.forRoot({
+            level: 'debug',
+            transports: [
+                new winston.transports.Console({
+                    format: winston.format.combine(
+                        winston.format.colorize({
+                            all: true,
+                        }),
+                        winston.format.timestamp(),
+                        winston.format.printf((info) => `${info.context} ${info.level} ${info.message}`),
+                    ),
+                }),
+                new winston.transports.File({
+                    dirname: join(process.cwd(), 'logs'),
+                    filename: 'logs.log',
+                    format: winston.format.combine(
+                        // winston.format.colorize({
+                        //     all: true,
+                        // }),
+                        winston.format.timestamp(),
+                        winston.format.printf((info) => `${info.context} ${info.level} ${info.message}`),
+                    ),
+                }),
+            ],
+        }),
         MovieModule,
         DirectorModule,
         GenreModule,
