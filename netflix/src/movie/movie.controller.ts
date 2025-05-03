@@ -22,13 +22,13 @@ import { TransactionInterceptor } from '../common/interceptor/transaction.interc
 
 import { MovieService } from './movie.service';
 
-import { Role } from '../user/entities/user.entity';
+import { Role } from '../user/entity/user.entity';
 
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { GetMoviesDto } from './dto/get-movies.dto';
 import { Throttle } from '../common/decorator/throttle.decorator';
-import { ApiBasicAuth, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBasicAuth, ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller({
     path: 'movie',
@@ -36,6 +36,7 @@ import { ApiBasicAuth, ApiBearerAuth } from '@nestjs/swagger';
     // version: VERSION_NEUTRAL,
 })
 @ApiBearerAuth()
+@ApiTags('movie')
 @UseInterceptors(ClassSerializerInterceptor)
 export class MovieController {
     constructor(private readonly movieService: MovieService) {}
@@ -45,6 +46,17 @@ export class MovieController {
     @Throttle({
         count: 5,
         unit: 'minute',
+    })
+    @ApiOperation({
+        description: '[Movie]를 Pagination 하는 api',
+    })
+    @ApiResponse({
+        status: 200,
+        description: '성공적으로 API Pagination을 실행 했을 때!',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Pagination 데이터를 잘못 입력 했을 때',
     })
     // @Version(['1', '3', '5'])
     getMovies(@Query() dto: GetMoviesDto, @UserId() userId?: number) {

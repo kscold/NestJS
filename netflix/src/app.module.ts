@@ -23,7 +23,7 @@ import { Movie } from './movie/entity/movie.entity';
 import { MovieDetail } from './movie/entity/movie-detail.entity';
 import { Director } from './director/entity/director.entity';
 import { Genre } from './genre/entity/genre.entity';
-import { User } from './user/entities/user.entity';
+import { User } from './user/entity/user.entity';
 import { MovieUserLike } from './movie/entity/movie-user-like.entity';
 
 import { GenreModule } from './genre/genre.module';

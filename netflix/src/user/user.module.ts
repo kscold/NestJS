@@ -4,7 +4,7 @@ import { UserController } from './user.controller';
 
 import { UserService } from './user.service';
 
-import { User } from './entities/user.entity';
+import { User } from './entity/user.entity';
 import { ConfigService } from '@nestjs/config';
 
 @Module({

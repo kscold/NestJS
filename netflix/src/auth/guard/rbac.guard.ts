@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core';
 
 import { RBAC } from '../decorator/rbac.decorator';
 
-import { Role } from '../../user/entities/user.entity';
+import { Role } from '../../user/entity/user.entity';
 
 @Injectable()
 export class RBACGuard implements CanActivate {

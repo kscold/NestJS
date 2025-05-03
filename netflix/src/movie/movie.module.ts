@@ -13,7 +13,7 @@ import { MovieDetail } from './entity/movie-detail.entity';
 import { Director } from '../director/entity/director.entity';
 import { Genre } from '../genre/entity/genre.entity';
 import { MovieUserLike } from './entity/movie-user-like.entity';
-import { User } from '../user/entities/user.entity';
+import { User } from '../user/entity/user.entity';
 
 @Module({
     imports: [

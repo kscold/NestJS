@@ -8,7 +8,7 @@ import bcrypt from 'bcrypt';
 
 import { envVariableKeys } from '../common/const/env.const';
 
-import { Role, User } from '../user/entities/user.entity';
+import { Role, User } from '../user/entity/user.entity';
 
 @Injectable()
 export class AuthService {

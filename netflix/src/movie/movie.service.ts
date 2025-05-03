@@ -16,7 +16,7 @@ import { Genre } from '../genre/entity/genre.entity';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { GetMoviesDto } from './dto/get-movies.dto';
-import { User } from '../user/entities/user.entity';
+import { User } from '../user/entity/user.entity';
 import { MovieUserLike } from './entity/movie-user-like.entity';
 
 @Injectable()

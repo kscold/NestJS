@@ -1,5 +1,5 @@
 import { PickType } from '@nestjs/mapped-types';
-import { Role, User } from '../entities/user.entity';
+import { Role, User } from '../entity/user.entity';
 
 import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 import { Exclude } from 'class-transformer';
