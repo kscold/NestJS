@@ -10,7 +10,6 @@ import {
     Post,
     Query,
     UseInterceptors,
-    VERSION_NEUTRAL,
 } from '@nestjs/common';
 import { QueryRunner as QR } from 'typeorm';
 import { CacheInterceptor as CI, CacheKey, CacheTTL } from '@nestjs/cache-manager';
@@ -29,20 +28,14 @@ import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { GetMoviesDto } from './dto/get-movies.dto';
 import { Throttle } from '../common/decorator/throttle.decorator';
-
-@Controller({ path: 'movie', version: '2' })
-export class MovieControllerV2 {
-    @Get()
-    getMovies() {
-        return [];
-    }
-}
+import { ApiBasicAuth, ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller({
     path: 'movie',
     // version: ['1', '3'],
-    version: VERSION_NEUTRAL,
+    // version: VERSION_NEUTRAL,
 })
+@ApiBearerAuth()
 @UseInterceptors(ClassSerializerInterceptor)
 export class MovieController {
     constructor(private readonly movieService: MovieService) {}
