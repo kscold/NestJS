@@ -1,16 +1,16 @@
 import {
-    Controller,
-    Get,
-    Post,
     Body,
-    Patch,
-    Param,
+    ClassSerializerInterceptor,
+    Controller,
     Delete,
+    Get,
+    Param,
+    ParseIntPipe,
+    Patch,
+    Post,
     Query,
     UseInterceptors,
-    ClassSerializerInterceptor,
-    ParseIntPipe,
-    Version,
+    VERSION_NEUTRAL,
 } from '@nestjs/common';
 import { QueryRunner as QR } from 'typeorm';
 import { CacheInterceptor as CI, CacheKey, CacheTTL } from '@nestjs/cache-manager';
@@ -19,7 +19,6 @@ import { Public } from '../auth/decorator/public.decorator';
 import { RBAC } from '../auth/decorator/rbac.decorator';
 import { UserId } from '../user/decorator/user-id.decorator';
 import { QueryRunner } from '../common/decorator/query-runner.decorator';
-import { CacheInterceptor } from '../common/interceptor/cache.interceptor';
 import { TransactionInterceptor } from '../common/interceptor/transaction.interceptor';
 
 import { MovieService } from './movie.service';
@@ -39,7 +38,11 @@ export class MovieControllerV2 {
     }
 }
 
-@Controller({ path: 'movie', version: ['1', '3'] })
+@Controller({
+    path: 'movie',
+    // version: ['1', '3'],
+    version: VERSION_NEUTRAL,
+})
 @UseInterceptors(ClassSerializerInterceptor)
 export class MovieController {
     constructor(private readonly movieService: MovieService) {}
@@ -50,7 +53,7 @@ export class MovieController {
         count: 5,
         unit: 'minute',
     })
-    @Version(['1', '3', '5'])
+    // @Version(['1', '3', '5'])
     getMovies(@Query() dto: GetMoviesDto, @UserId() userId?: number) {
         return this.movieService.findAll(dto, userId);
     }

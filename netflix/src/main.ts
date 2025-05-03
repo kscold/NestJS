@@ -13,8 +13,12 @@ async function bootstrap() {
     });
 
     app.enableVersioning({
-        type: VersioningType.URI,
+        // type: VersioningType.URI,
         // defaultVersion: ['1', '2'],
+        // type: VersioningType.HEADER,
+        // header: 'version',
+        type: VersioningType.MEDIA_TYPE,
+        key: 'v=',
     });
     app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
     app.useGlobalPipes(
